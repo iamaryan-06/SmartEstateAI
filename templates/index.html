@@ -5,307 +5,328 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartEstate AI | Predict Property Prices in Indore & Bangalore</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    brand: { 50:'#e6f0ff', 100:'#b3d1ff', 200:'#80b3ff', 400:'#3388ff', 500:'#0055ff', 600:'#0044cc', 700:'#003399', 800:'#002266', 900:'#001133' },
+                    surface: { 50:'#f8fafc', 100:'#f1f5f9', 800:'#1e293b', 850:'#172033', 900:'#0f172a', 950:'#0a1021' }
+                }
+            }
+        }
+    }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',system-ui,sans-serif;overflow-x:hidden;transition:background .4s,color .4s}
+        .logo-font{font-family:'Space Grotesk',sans-serif}
 
-        body { font-family: 'Inter', system-ui, sans-serif; }
+        /* 3D Canvas */
+        #hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
 
-        .logo-font { font-family: 'Space Grotesk', sans-serif; }
+        /* Glassmorphism */
+        .glass{background:rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12)}
+        .dark .glass{background:rgba(15,23,42,.5);border-color:rgba(255,255,255,.06)}
 
-        .hero-bg {
-            background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
-                              url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=2000&q=80');
-            background-size: cover;
-            background-position: center;
+        /* Nav */
+        .nav-link{position:relative;transition:color .25s}
+        .nav-link::after{content:'';position:absolute;width:0;height:2.5px;bottom:-4px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#0055ff,#00d4ff);border-radius:99px;transition:width .3s ease}
+        .nav-link:hover::after,.nav-link.active::after{width:100%}
+
+        /* Cards */
+        .card-hover{transition:transform .35s cubic-bezier(.4,0,.2,1),box-shadow .35s ease}
+        .card-hover:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 24px 48px -12px rgba(0,85,255,.15)}
+        .dark .card-hover:hover{box-shadow:0 24px 48px -12px rgba(0,85,255,.25)}
+
+        /* Gradient text */
+        .gradient-text{background:linear-gradient(135deg,#0055ff 0%,#00d4ff 50%,#a855f7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+        /* Animations */
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spinner{animation:spin 1s linear infinite}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        .float-anim{animation:float 4s ease-in-out infinite}
+        @keyframes pricePop{0%{transform:scale(.85);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+        .price-tag{animation:pricePop .5s cubic-bezier(.68,-.55,.27,1.55)}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        .fade-up{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
+        .fade-up.visible{opacity:1;transform:translateY(0)}
+        @keyframes pulse-ring{0%{transform:scale(.8);opacity:1}100%{transform:scale(2.2);opacity:0}}
+        .pulse-ring{animation:pulse-ring 2s ease-out infinite}
+        @keyframes gradient-x{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .animate-gradient{background-size:200% 200%;animation:gradient-x 4s ease infinite}
+
+        /* Visibility */
+        .show-flex{display:flex!important}
+        .hide{display:none!important}
+
+        /* Scroll indicator */
+        #scroll-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#0055ff,#00d4ff,#a855f7);z-index:9999;transition:width .1s}
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar{width:8px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(#0055ff,#00d4ff);border-radius:99px}
+        .dark ::-webkit-scrollbar-thumb{background:linear-gradient(#3388ff,#00d4ff)}
+
+        /* Focus */
+        select:focus,input:focus,textarea:focus{outline:none;box-shadow:0 0 0 3px rgba(0,85,255,.2)}
+
+        /* Tooltip */
+        .tooltip{position:relative}
+        .tooltip::after{content:attr(data-tip);position:absolute;bottom:120%;left:50%;transform:translateX(-50%) scale(.9);background:#0f172a;color:#fff;font-size:.7rem;padding:4px 10px;border-radius:8px;white-space:nowrap;pointer-events:none;opacity:0;transition:all .2s}
+        .tooltip:hover::after{opacity:1;transform:translateX(-50%) scale(1)}
+
+        /* Mobile touch feedback */
+        @media(hover:none){.card-hover:active{transform:scale(.97)}}
+
+        /* Responsive type */
+        @media(max-width:640px){
+            .hero-title{font-size:2.2rem!important;line-height:1.1!important}
+            .hero-subtitle{font-size:1rem!important}
         }
-
-        /* FIX: nav underline transition was missing width transition */
-        .nav-link {
-            position: relative;
-            transition: color 0.2s;
+        @media(min-width:641px) and (max-width:1024px){
+            .hero-title{font-size:3.5rem!important}
         }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 3px;
-            bottom: -4px;
-            left: 0;
-            background: linear-gradient(to right, #0055ff, #00d4ff);
-            border-radius: 9999px;
-            transition: width 0.3s ease;  /* FIX: was missing */
-        }
-        .nav-link:hover::after { width: 100%; }
-
-        .card-hover {
-            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -12px rgba(0,85,255,0.18);
-        }
-
-        .section-header { position: relative; }
-        .section-header::after {
-            content: '';
-            position: absolute;
-            width: 60px; height: 3px;
-            background: linear-gradient(to right, #0055ff, #00d4ff);
-            bottom: -10px; left: 0;
-            border-radius: 9999px;
-        }
-
-        .price-tag { animation: pricePop 0.6s cubic-bezier(0.68,-0.55,0.27,1.55); }
-        @keyframes pricePop {
-            0%   { transform: scale(0.8); }
-            50%  { transform: scale(1.12); }
-            100% { transform: scale(1); }
-        }
-
-        /* FIX: @keyframes spin was missing — spinner was broken */
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner { animation: spin 1.2s linear infinite; }
-
-        /* FIX: loading-state used both 'hidden' (display:none) and 'flex-col' — conflicted */
-        /* Use a custom class instead */
-        .show-flex { display: flex !important; }
-        .hide      { display: none !important; }
-
-        select:focus, input:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,85,255,0.25); }
     </style>
 </head>
-<body class="bg-white">
+<body class="bg-white text-gray-900 dark:bg-surface-950 dark:text-gray-100">
 
-<!-- ════════════════════════════════════════════ NAVBAR -->
-<nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-6">
+<!-- Scroll Progress Bar -->
+<div id="scroll-progress" style="width:0%"></div>
+
+<!-- ═══════════════════════════════════════════ NAVBAR -->
+<nav id="navbar" class="bg-white/80 dark:bg-surface-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 sticky top-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-16">
-            <!-- Logo -->
             <div class="flex items-center gap-x-2">
-                <div class="w-9 h-9 bg-[#0055ff] rounded-2xl flex items-center justify-center text-white shadow-inner">
-                    <i class="fa-solid fa-house-signal"></i>
+                <div class="w-9 h-9 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                    <i class="fa-solid fa-house-signal text-sm"></i>
                 </div>
-                <h1 class="logo-font text-2xl font-semibold tracking-tight text-gray-900">
-                    SmartEstate<span class="text-[#0055ff]">AI</span>
+                <h1 class="logo-font text-xl sm:text-2xl font-semibold tracking-tight">
+                    SmartEstate<span class="gradient-text">AI</span>
                 </h1>
-                <span class="text-xs font-medium bg-blue-100 text-[#0055ff] px-2.5 py-0.5 rounded-full">Indore • Bangalore</span>
+                <span class="hidden sm:inline text-[10px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-500 px-2.5 py-0.5 rounded-full border border-brand-100 dark:border-brand-500/20">v3.0</span>
             </div>
 
-            <!-- Desktop nav -->
-            <div class="hidden md:flex items-center gap-x-8 text-sm font-medium">
-                <a href="#home"     onclick="event.preventDefault();smoothScroll('home')"     class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Home</a>
-                <a href="#listings" onclick="event.preventDefault();smoothScroll('listings')" class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Listings</a>
-                <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict')"  class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Predictor</a>
-                <a href="#about"    onclick="event.preventDefault();smoothScroll('about')"    class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">How AI Works</a>
-                <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact')"  class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Contact</a>
+            <div class="hidden lg:flex items-center gap-x-7 text-sm font-medium">
+                <a href="#home"     onclick="event.preventDefault();smoothScroll('home')"     class="nav-link text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 pb-1">Home</a>
+                <a href="#listings" onclick="event.preventDefault();smoothScroll('listings')" class="nav-link text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 pb-1">Listings</a>
+                <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict')"  class="nav-link text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 pb-1">Predictor</a>
+                <a href="#about"    onclick="event.preventDefault();smoothScroll('about')"    class="nav-link text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 pb-1">How AI Works</a>
+                <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact')"  class="nav-link text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 pb-1">Contact</a>
             </div>
 
-            <div class="flex items-center gap-x-3">
-                <div class="hidden sm:flex items-center text-xs font-semibold px-4 h-9 bg-gradient-to-r from-blue-50 to-cyan-50 text-[#0055ff] rounded-3xl border border-blue-100">
-                    <i class="fa-solid fa-map-pin mr-1"></i> Indore &amp; Bangalore
-                </div>
-                <button onclick="smoothScroll('predict')"
-                        class="px-5 py-2.5 bg-[#0055ff] hover:bg-[#0033cc] text-white text-sm font-semibold rounded-3xl flex items-center gap-x-2 shadow-lg shadow-blue-500/30 transition-colors">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Now
+            <div class="flex items-center gap-x-2 sm:gap-x-3">
+                <!-- Dark mode toggle -->
+                <button onclick="toggleDarkMode()" id="theme-toggle"
+                        class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-white/15 transition-all tooltip" data-tip="Toggle theme">
+                    <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
                 </button>
-                <button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 flex items-center justify-center text-xl text-gray-700">
+                <button onclick="smoothScroll('predict')"
+                        class="hidden sm:flex px-4 py-2 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-semibold rounded-xl items-center gap-x-2 shadow-lg shadow-brand-500/25 transition-all hover:shadow-brand-500/40 hover:scale-[1.02] active:scale-[.98]">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Predict
+                </button>
+                <button onclick="toggleMobileMenu()" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300">
                     <i id="hamburger-icon" class="fa-solid fa-bars"></i>
                 </button>
             </div>
         </div>
     </div>
-
     <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden bg-white border-t px-6 py-4">
-        <div class="flex flex-col gap-y-3 text-sm font-medium">
-            <a href="#home"     onclick="event.preventDefault();smoothScroll('home');closeMobileMenu()"     class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-house w-5"></i> Home</a>
-            <a href="#listings" onclick="event.preventDefault();smoothScroll('listings');closeMobileMenu()" class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-list-ul w-5"></i> Listings</a>
-            <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict');closeMobileMenu()"  class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-chart-line w-5"></i> AI Predictor</a>
-            <a href="#about"    onclick="event.preventDefault();smoothScroll('about');closeMobileMenu()"    class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-brain w-5"></i> About Model</a>
-            <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact');closeMobileMenu()"  class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-envelope w-5"></i> Contact</a>
+    <div id="mobile-menu" class="hidden lg:hidden bg-white dark:bg-surface-900 border-t border-gray-100 dark:border-white/5 px-4 py-3">
+        <div class="flex flex-col gap-y-1 text-sm font-medium">
+            <a href="#home"     onclick="event.preventDefault();smoothScroll('home');closeMobileMenu()"     class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-house w-5 text-brand-500"></i> Home</a>
+            <a href="#listings" onclick="event.preventDefault();smoothScroll('listings');closeMobileMenu()" class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-list-ul w-5 text-brand-500"></i> Listings</a>
+            <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict');closeMobileMenu()"  class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-chart-line w-5 text-brand-500"></i> AI Predictor</a>
+            <a href="#about"    onclick="event.preventDefault();smoothScroll('about');closeMobileMenu()"    class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-brain w-5 text-brand-500"></i> How AI Works</a>
+            <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact');closeMobileMenu()"  class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-envelope w-5 text-brand-500"></i> Contact</a>
         </div>
     </div>
 </nav>
 
-<!-- ════════════════════════════════════════════ HERO -->
-<section id="home" class="hero-bg min-h-screen flex items-center text-white relative">
-    <div class="max-w-7xl mx-auto px-6 py-24 w-full">
+<!-- ═══════════════════════════════════════════ HERO -->
+<section id="home" class="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-surface-950 via-[#0a1a3a] to-surface-950">
+    <canvas id="hero-canvas"></canvas>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 w-full">
         <div class="max-w-2xl">
-            <div class="inline-flex items-center gap-x-2 bg-white/20 backdrop-blur-md text-white text-sm font-medium px-6 h-10 rounded-3xl mb-6 border border-white/30">
-                <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+            <div class="inline-flex items-center gap-x-2 glass text-white text-xs sm:text-sm font-medium px-4 sm:px-6 h-9 rounded-full mb-6">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="pulse-ring absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
                 </span>
-                LIVE AI MODEL &bull; Trained on 10,474+ Bangalore listings
+                LIVE AI MODEL &bull; 10,474+ Listings
             </div>
 
-            <h1 class="text-5xl md:text-7xl font-semibold leading-none logo-font tracking-tight mb-6">
-                Predict Property Prices<br>with <span class="text-[#00d4ff]">AI Precision</span>
+            <h1 class="hero-title text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.05] logo-font tracking-tight text-white mb-6">
+                Predict Property<br>Prices with<br><span class="gradient-text">AI Precision</span>
             </h1>
 
-            <p class="text-xl text-white/85 mb-10 max-w-md">
-                Instant valuation for homes in Indore &amp; Bangalore.
-                Powered by Linear Regression — trained on real market data.
+            <p class="hero-subtitle text-base sm:text-xl text-white/70 mb-8 sm:mb-10 max-w-md leading-relaxed">
+                Instant AI valuation for homes in Indore & Bangalore. Powered by Gradient Boosting trained on real 2026 market data.
             </p>
 
-            <div class="flex flex-wrap items-center gap-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <button onclick="smoothScroll('predict')"
-                        class="px-8 py-4 bg-white text-[#0055ff] font-semibold text-lg rounded-3xl flex items-center gap-x-3 hover:scale-105 active:scale-95 transition-transform shadow-2xl">
-                    <i class="fa-solid fa-magic"></i> Get Instant Prediction
+                        class="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-brand-500 to-cyan-400 text-white font-semibold text-base sm:text-lg rounded-2xl flex items-center justify-center gap-x-3 hover:scale-[1.03] active:scale-[.97] transition-all shadow-2xl shadow-brand-500/30 animate-gradient">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Get Instant Prediction
                 </button>
                 <button onclick="smoothScroll('listings')"
-                        class="px-8 py-4 border border-white/70 hover:bg-white/10 text-white font-medium text-lg rounded-3xl flex items-center gap-x-3 transition-colors">
+                        class="px-6 sm:px-8 py-3.5 sm:py-4 glass text-white font-medium text-base sm:text-lg rounded-2xl flex items-center justify-center gap-x-3 hover:bg-white/15 transition-all">
                     Browse Properties <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
 
-            <div class="mt-14 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
-                <div class="flex items-center gap-x-1">
-                    <i class="fa-solid fa-star text-yellow-400"></i>
-                    <i class="fa-solid fa-star text-yellow-400"></i>
-                    <i class="fa-solid fa-star text-yellow-400"></i>
-                    <i class="fa-solid fa-star text-yellow-400"></i>
-                    <i class="fa-solid fa-star text-yellow-400"></i>
-                    <span class="ml-2">4.9 on Product Hunt</span>
+            <!-- Stats row -->
+            <div class="mt-10 sm:mt-14 grid grid-cols-3 gap-4 sm:gap-6 max-w-md">
+                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white">
+                    <div class="text-2xl sm:text-3xl font-bold">104</div>
+                    <div class="text-[10px] sm:text-xs text-white/60 mt-1">Locations</div>
                 </div>
-                <div>Used by 8,421 home buyers</div>
+                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white">
+                    <div class="text-2xl sm:text-3xl font-bold">12</div>
+                    <div class="text-[10px] sm:text-xs text-white/60 mt-1">AI Features</div>
+                </div>
+                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white">
+                    <div class="text-2xl sm:text-3xl font-bold">0.93</div>
+                    <div class="text-[10px] sm:text-xs text-white/60 mt-1">R2 Score</div>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Floating stats -->
-    <div class="hidden xl:flex absolute bottom-12 right-12 bg-white/10 backdrop-blur-xl rounded-3xl p-6 text-white border border-white/30 shadow-2xl">
-        <div class="text-center px-8 border-r border-white/30">
-            <div class="text-4xl font-semibold">104</div>
-            <div class="text-sm opacity-75">Locations covered</div>
-        </div>
-        <div class="text-center px-8 border-r border-white/30">
-            <div class="text-4xl font-semibold">12</div>
-            <div class="text-sm opacity-75">Cost factors modeled</div>
-        </div>
-        <div class="text-center px-8">
-            <div class="text-4xl font-semibold">2026</div>
-            <div class="text-sm opacity-75">Market prices</div>
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden sm:flex flex-col items-center text-white/40 text-xs gap-2">
+        <span>Scroll to explore</span>
+        <div class="w-5 h-8 border-2 border-white/20 rounded-full flex justify-center pt-1.5">
+            <div class="w-1 h-2 bg-white/50 rounded-full" style="animation:float 2s ease-in-out infinite"></div>
         </div>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════ FEATURED -->
-<section class="max-w-7xl mx-auto px-6 py-16">
-    <div class="flex justify-between items-end mb-10">
-        <div>
-            <span class="px-4 py-1 bg-blue-100 text-[#0055ff] text-sm font-semibold rounded-3xl">FEATURED</span>
-            <h2 class="section-header text-4xl font-semibold text-gray-900 mt-3">Premium Homes in Indore &amp; Bangalore</h2>
+<!-- ═══════════════════════════════════════════ FEATURED -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-10 gap-4">
+        <div class="fade-up">
+            <span class="px-3 py-1 bg-brand-50 dark:bg-brand-500/10 text-brand-500 text-xs font-bold rounded-full border border-brand-100 dark:border-brand-500/20">FEATURED</span>
+            <h2 class="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mt-3">Premium Homes</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mt-2">Handpicked listings from Indore & Bangalore</p>
         </div>
-        <a href="#listings" onclick="event.preventDefault();smoothScroll('listings')" class="flex items-center text-[#0055ff] font-medium hover:gap-x-3 gap-x-2 transition-all cursor-pointer">
-            View all listings <i class="fa-solid fa-arrow-right ml-1"></i>
+        <a href="#listings" onclick="event.preventDefault();smoothScroll('listings')" class="flex items-center text-brand-500 font-medium hover:gap-x-3 gap-x-2 transition-all cursor-pointer text-sm">
+            View all <i class="fa-solid fa-arrow-right"></i>
         </a>
     </div>
-    <div id="featured-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    <div id="featured-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"></div>
 </section>
 
-<!-- ════════════════════════════════════════════ LISTINGS -->
-<section id="listings" class="bg-gray-50 py-16">
-    <div class="max-w-7xl mx-auto px-6">
-        <h2 class="section-header text-4xl font-semibold text-gray-900 mb-2">All Properties</h2>
-        <p class="text-gray-500 mt-4 mb-10">Filter and explore verified listings across Indore &amp; Bangalore</p>
+<!-- ═══════════════════════════════════════════ LISTINGS -->
+<section id="listings" class="bg-gray-50 dark:bg-surface-900 py-12 sm:py-16 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="fade-up">
+            <h2 class="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">All Properties</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1 mb-8">Filter and explore verified listings</p>
+        </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-3xl shadow-sm p-6 mb-8 flex flex-wrap items-end gap-6">
+        <div class="bg-white dark:bg-surface-850 rounded-2xl shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 p-4 sm:p-6 mb-8 flex flex-wrap items-end gap-4 sm:gap-6 fade-up">
             <div>
-                <label class="block text-xs font-medium text-gray-400 mb-2">LOCATION</label>
+                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">LOCATION</label>
                 <select id="filter-location" onchange="applyFilters()"
-                        class="bg-gray-50 border border-gray-200 focus:border-[#0055ff] rounded-2xl px-5 py-3 w-48 text-gray-700">
+                        class="bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 w-full sm:w-44 text-sm text-gray-700 dark:text-gray-300">
                     <option value="all">All Cities</option>
                     <option value="Indore">Indore</option>
                     <option value="Bangalore">Bangalore</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-400 mb-2">BHK</label>
-                <div class="flex gap-x-2" id="bhk-filters">
-                    <button onclick="toggleBHK(1,this)" class="bhk-btn px-5 py-2.5 border border-gray-200 rounded-2xl text-sm font-medium transition-colors hover:border-[#0055ff]">1 BHK</button>
-                    <button onclick="toggleBHK(2,this)" class="bhk-btn px-5 py-2.5 border border-gray-200 rounded-2xl text-sm font-medium transition-colors hover:border-[#0055ff]">2 BHK</button>
-                    <button onclick="toggleBHK(3,this)" class="bhk-btn px-5 py-2.5 border border-gray-200 rounded-2xl text-sm font-medium transition-colors hover:border-[#0055ff]">3 BHK</button>
-                    <button onclick="toggleBHK(4,this)" class="bhk-btn px-5 py-2.5 border border-gray-200 rounded-2xl text-sm font-medium transition-colors hover:border-[#0055ff]">4+ BHK</button>
+                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">BHK</label>
+                <div class="flex gap-x-2 flex-wrap gap-y-2">
+                    <button onclick="toggleBHK(1,this)" class="bhk-btn px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-medium transition-all hover:border-brand-500 dark:text-gray-300">1 BHK</button>
+                    <button onclick="toggleBHK(2,this)" class="bhk-btn px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-medium transition-all hover:border-brand-500 dark:text-gray-300">2 BHK</button>
+                    <button onclick="toggleBHK(3,this)" class="bhk-btn px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-medium transition-all hover:border-brand-500 dark:text-gray-300">3 BHK</button>
+                    <button onclick="toggleBHK(4,this)" class="bhk-btn px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-medium transition-all hover:border-brand-500 dark:text-gray-300">4+</button>
                 </div>
             </div>
-            <div class="flex-1 min-w-[240px]">
-                <label class="block text-xs font-medium text-gray-400 mb-2">PRICE RANGE (₹)</label>
-                <div class="flex items-center gap-x-3">
-                    <input id="price-min" type="number" placeholder="Min" value="2000000"
-                           oninput="applyFilters()"
-                           class="w-32 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 focus:border-[#0055ff]">
-                    <span class="text-gray-400">—</span>
-                    <input id="price-max" type="number" placeholder="Max" value="50000000"
-                           oninput="applyFilters()"
-                           class="w-32 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 focus:border-[#0055ff]">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">PRICE RANGE</label>
+                <div class="flex items-center gap-x-2">
+                    <input id="price-min" type="number" placeholder="Min" value="2000000" oninput="applyFilters()"
+                           class="w-28 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-gray-300">
+                    <span class="text-gray-300 dark:text-gray-600">—</span>
+                    <input id="price-max" type="number" placeholder="Max" value="50000000" oninput="applyFilters()"
+                           class="w-28 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-gray-300">
                 </div>
             </div>
-            <button onclick="resetFilters()"
-                    class="ml-auto px-6 py-3 text-gray-500 hover:text-gray-800 flex items-center gap-x-2 text-sm transition-colors">
+            <button onclick="resetFilters()" class="px-4 py-2.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-x-2 text-xs transition-colors rounded-xl hover:bg-gray-50 dark:hover:bg-white/5">
                 <i class="fa-solid fa-rotate-right"></i> Reset
             </button>
         </div>
 
-        <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        <div id="listings-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"></div>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════ PREDICTION -->
-<section id="predict" class="max-w-7xl mx-auto px-6 py-16">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+<!-- ═══════════════════════════════════════════ PREDICTION -->
+<section id="predict" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10">
 
         <!-- Form -->
-        <div class="lg:col-span-5 bg-white rounded-3xl shadow-xl p-8">
-            <h2 class="text-4xl font-semibold mb-2">AI Price Predictor</h2>
-            <p class="text-gray-500 mb-8 text-sm">Enter property details for instant valuation using our real Linear Regression model</p>
+        <div class="lg:col-span-5 bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-6 sm:p-8 fade-up">
+            <div class="flex items-center gap-3 mb-1">
+                <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold dark:text-white">AI Predictor</h2>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-sm ml-[52px]">Instant valuation using Gradient Boosting</p>
 
             <form id="prediction-form" onsubmit="handlePrediction(event)">
-                <div class="space-y-6">
-
-                    <!-- City selector -->
+                <div class="space-y-5">
+                    <!-- City -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-2 tracking-widest">CITY</label>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">CITY</label>
                         <div class="grid grid-cols-2 gap-3">
                             <button type="button" onclick="selectCity(this,'Indore')"
-                                    class="city-btn py-5 border-2 border-gray-200 hover:border-[#0055ff] rounded-3xl flex flex-col items-center justify-center transition-colors">
-                                <i class="fa-solid fa-city text-2xl mb-1 text-gray-400"></i>
-                                <span class="font-semibold text-sm">Indore</span>
+                                    class="city-btn py-4 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                                <i class="fa-solid fa-city text-xl mb-1 text-gray-400 dark:text-gray-500 group-hover:text-brand-500 transition-colors"></i>
+                                <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Indore</span>
                             </button>
                             <button type="button" onclick="selectCity(this,'Bangalore')"
-                                    class="city-btn py-5 border-2 border-gray-200 hover:border-[#0055ff] rounded-3xl flex flex-col items-center justify-center transition-colors">
-                                <i class="fa-solid fa-city text-2xl mb-1 text-gray-400"></i>
-                                <span class="font-semibold text-sm">Bangalore</span>
+                                    class="city-btn py-4 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                                <i class="fa-solid fa-city text-xl mb-1 text-gray-400 dark:text-gray-500 group-hover:text-brand-500 transition-colors"></i>
+                                <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Bangalore</span>
                             </button>
                         </div>
                     </div>
-
                     <input type="hidden" id="selected-city" value="">
 
-                    <!-- Location dropdown -->
+                    <!-- Location -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-2 tracking-widest">LOCATION / AREA</label>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">LOCATION / AREA</label>
                         <select id="location-select" required
-                                class="w-full px-5 py-4 bg-gray-50 border border-gray-200 focus:border-[#0055ff] rounded-3xl text-base text-gray-700">
+                                class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm text-gray-700 dark:text-gray-300">
                             <option value="">— Select city first —</option>
                         </select>
                     </div>
 
                     <!-- Property Type -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-2 tracking-widest">PROPERTY TYPE</label>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">PROPERTY TYPE</label>
                         <div class="grid grid-cols-2 gap-3">
                             <button type="button" onclick="selectPropertyType(this,'flat')"
-                                    class="prop-btn py-4 border-2 border-[#0055ff] bg-blue-50 rounded-3xl flex flex-col items-center justify-center transition-colors">
-                                <i class="fa-solid fa-building text-xl mb-1 text-[#0055ff]"></i>
-                                <span class="font-semibold text-sm text-[#0055ff]">Flat / Apartment</span>
+                                    class="prop-btn py-3.5 border-2 border-brand-500 bg-brand-50 dark:bg-brand-500/10 rounded-2xl flex flex-col items-center justify-center transition-all">
+                                <i class="fa-solid fa-building text-lg mb-1 text-brand-500"></i>
+                                <span class="font-semibold text-xs text-brand-500">Flat / Apartment</span>
                             </button>
                             <button type="button" onclick="selectPropertyType(this,'independent')"
-                                    class="prop-btn py-4 border-2 border-gray-200 hover:border-[#0055ff] rounded-3xl flex flex-col items-center justify-center transition-colors">
-                                <i class="fa-solid fa-house-chimney text-xl mb-1 text-gray-400"></i>
-                                <span class="font-semibold text-sm">Independent House</span>
+                                    class="prop-btn py-3.5 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                                <i class="fa-solid fa-house-chimney text-lg mb-1 text-gray-400 dark:text-gray-500"></i>
+                                <span class="font-semibold text-xs text-gray-600 dark:text-gray-400">Independent House</span>
                             </button>
                         </div>
                     </div>
@@ -313,39 +334,30 @@
 
                     <!-- Area -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-2 tracking-widest">AREA (sq ft)</label>
+                        <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">AREA (sq ft)</label>
                         <input id="area" type="number" required min="200" value="1200"
-                               class="w-full px-6 py-5 bg-gray-50 border border-gray-200 focus:border-[#0055ff] rounded-3xl text-3xl font-semibold text-gray-800">
+                               class="w-full px-5 py-4 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
                     </div>
 
-                    <!-- BHK + Bathrooms -->
-                    <div class="grid grid-cols-2 gap-5">
+                    <!-- BHK + Bath -->
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-2 tracking-widest">BEDROOMS (BHK)</label>
-                            <select id="bhk" required
-                                    class="w-full px-5 py-4 bg-gray-50 border border-gray-200 focus:border-[#0055ff] rounded-3xl text-base">
-                                <option value="1">1 BHK</option>
-                                <option value="2" selected>2 BHK</option>
-                                <option value="3">3 BHK</option>
-                                <option value="4">4 BHK</option>
-                                <option value="5">5 BHK</option>
+                            <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">BEDROOMS</label>
+                            <select id="bhk" required class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm dark:text-gray-300">
+                                <option value="1">1 BHK</option><option value="2" selected>2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5 BHK</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-2 tracking-widest">BATHROOMS</label>
-                            <select id="bathrooms" required
-                                    class="w-full px-5 py-4 bg-gray-50 border border-gray-200 focus:border-[#0055ff] rounded-3xl text-base">
-                                <option value="1">1</option>
-                                <option value="2" selected>2</option>
-                                <option value="3">3</option>
-                                <option value="4">4+</option>
+                            <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">BATHROOMS</label>
+                            <select id="bathrooms" required class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm dark:text-gray-300">
+                                <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4+</option>
                             </select>
                         </div>
                     </div>
 
                     <!-- Submit -->
                     <button type="submit" id="predict-btn"
-                            class="w-full h-16 bg-gradient-to-r from-[#0055ff] to-[#00d4ff] text-white text-xl font-semibold rounded-3xl flex items-center justify-center gap-x-3 shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all">
+                            class="w-full h-14 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-lg font-bold rounded-2xl flex items-center justify-center gap-x-3 shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-[1.01] active:scale-[.98] transition-all">
                         <span id="btn-text">Predict Price Now</span>
                         <i id="btn-icon" class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -355,137 +367,127 @@
 
         <!-- Result Panel -->
         <div class="lg:col-span-7 min-h-[400px]">
-            <!-- Loading state — FIX: use classes that don't conflict -->
-            <div id="loading-state" class="hide h-full bg-white rounded-3xl shadow-xl p-8 flex-col items-center justify-center text-center">
-                <div class="spinner w-14 h-14 border-4 border-[#0055ff] border-t-transparent rounded-full mb-6 mx-auto"></div>
-                <p class="font-semibold text-xl text-gray-800">Calling AI model…</p>
-                <p class="text-sm text-gray-400 mt-2">Flask + scikit-learn processing your request</p>
+            <!-- Loading -->
+            <div id="loading-state" class="hide h-full bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-8 flex-col items-center justify-center text-center">
+                <div class="spinner w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full mb-6 mx-auto"></div>
+                <p class="font-bold text-xl text-gray-800 dark:text-white">Calling AI model...</p>
+                <p class="text-sm text-gray-400 mt-2">Flask + scikit-learn processing</p>
             </div>
 
-            <!-- Success content -->
-            <div id="result-panel" class="hide bg-white rounded-3xl shadow-xl p-8 h-full flex flex-col overflow-y-auto">
-                <div class="flex justify-between items-start mb-4">
+            <!-- Success -->
+            <div id="result-panel" class="hide bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-6 sm:p-8 h-full flex flex-col overflow-y-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                     <div>
-                        <span class="text-emerald-500 text-sm font-bold flex items-center">
-                            <i class="fa-solid fa-circle-check mr-1"></i> PREDICTION READY
+                        <span class="text-emerald-500 text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> PREDICTION READY
                         </span>
-                        <h3 id="result-city" class="text-2xl font-semibold mt-1 text-gray-800"></h3>
+                        <h3 id="result-city" class="text-xl sm:text-2xl font-bold mt-1 dark:text-white"></h3>
                     </div>
                     <div id="result-price" class="text-right price-tag"></div>
                 </div>
-
-                <div class="bg-gray-50 rounded-2xl p-4 mb-4">
+                <div class="bg-gray-50 dark:bg-surface-900 rounded-xl p-4 mb-4">
                     <div class="flex justify-between text-sm mb-3">
-                        <span class="text-gray-500">Your inputs</span>
-                        <span id="input-summary" class="font-medium text-gray-700"></span>
+                        <span class="text-gray-500 dark:text-gray-400">Your inputs</span>
+                        <span id="input-summary" class="font-medium text-gray-700 dark:text-gray-300 text-xs sm:text-sm"></span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs text-gray-500">
-                        <span id="result-psqft" class="bg-blue-50 text-blue-700 font-semibold px-2.5 py-1 rounded-lg"></span>
-                        <span id="result-zone" class="bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg capitalize"></span>
-                        <span id="result-cc" class="bg-amber-50 text-amber-700 font-semibold px-2.5 py-1 rounded-lg"></span>
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span id="result-psqft" class="bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold px-2.5 py-1 rounded-lg"></span>
+                        <span id="result-zone" class="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg capitalize"></span>
+                        <span id="result-cc" class="bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold px-2.5 py-1 rounded-lg"></span>
                     </div>
                 </div>
-
-                <!-- Cost Breakdown -->
                 <div class="mb-4">
-                    <p class="text-gray-700 text-sm font-semibold mb-3 flex items-center">
-                        <i class="fa-solid fa-chart-pie text-[#0055ff] mr-2"></i> Cost Breakdown
+                    <p class="text-gray-700 dark:text-gray-300 text-sm font-bold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-brand-500"></i> Cost Breakdown
                     </p>
-                    <div id="cost-breakdown" class="space-y-2"></div>
+                    <div id="cost-breakdown" class="space-y-2.5"></div>
                 </div>
-
-                <p class="text-gray-500 text-sm mb-3">Similar properties in the same city</p>
-                <div id="similar-properties" class="grid grid-cols-3 gap-4"></div>
-
-                <div class="mt-auto pt-4 border-t flex items-center justify-between text-sm">
-                    <div class="flex items-center text-emerald-600">
-                        <i class="fa-solid fa-robot mr-2"></i>
-                        Gradient Boosting + 12 Features
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-3">Similar properties</p>
+                <div id="similar-properties" class="grid grid-cols-3 gap-3 sm:gap-4"></div>
+                <div class="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-sm">
+                    <div class="flex items-center text-emerald-600 dark:text-emerald-400 text-xs">
+                        <i class="fa-solid fa-robot mr-2"></i> Gradient Boosting + 12 Features
                     </div>
-                    <button onclick="resetPrediction()"
-                            class="flex items-center gap-x-2 text-gray-400 hover:text-gray-700 transition-colors">
+                    <button onclick="resetPrediction()" class="flex items-center gap-x-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-xs">
                         <i class="fa-solid fa-rotate-left"></i> New Prediction
                     </button>
                 </div>
             </div>
 
             <!-- Empty state -->
-            <div id="empty-state" class="h-full bg-gradient-to-br from-gray-50 to-white border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center text-center px-12 py-16">
-                <i class="fa-solid fa-house-signal text-7xl text-gray-200 mb-6"></i>
-                <h3 class="text-2xl font-semibold text-gray-400 mb-2">Your AI valuation is seconds away</h3>
-                <p class="text-gray-400 max-w-xs text-sm">Fill the form on the left — our real ML model trained on thousands of listings will predict the price instantly.</p>
+            <div id="empty-state" class="h-full bg-gradient-to-br from-gray-50 to-white dark:from-surface-850 dark:to-surface-900 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center text-center px-8 sm:px-12 py-12 sm:py-16">
+                <div class="w-20 h-20 bg-gradient-to-br from-brand-500/10 to-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 float-anim">
+                    <i class="fa-solid fa-house-signal text-4xl gradient-text"></i>
+                </div>
+                <h3 class="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500 mb-2">AI valuation awaits</h3>
+                <p class="text-gray-400 dark:text-gray-500 max-w-xs text-sm">Fill the form — our ML model trained on thousands of listings will predict the price instantly.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════ ABOUT -->
-<section id="about" class="bg-white py-16">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid md:grid-cols-12 gap-16">
-            <div class="md:col-span-5">
-                <span class="text-[#0055ff] text-sm font-bold tracking-widest">ML PROJECT — v2</span>
-                <h2 class="section-header text-4xl font-semibold mt-2 mb-8">Flat vs Independent + Cost Model</h2>
-                <p class="text-lg text-gray-600 leading-relaxed">
-                    Our v3 model uses Gradient Boosting trained on 6,200+ records with 12 features — including
-                    property type (Flat vs Independent House), construction costs, architect/engineer fees, approval charges, GST — all calibrated to 2026 market prices.
+<!-- ═══════════════════════════════════════════ ABOUT -->
+<section id="about" class="bg-white dark:bg-surface-950 py-12 sm:py-16 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="grid md:grid-cols-12 gap-10 sm:gap-16">
+            <div class="md:col-span-5 fade-up">
+                <span class="text-brand-500 text-xs font-bold tracking-widest">ML PROJECT — v3</span>
+                <h2 class="text-2xl sm:text-4xl font-bold mt-2 mb-6 sm:mb-8 dark:text-white">Flat vs Independent<br>+ Cost Model</h2>
+                <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Gradient Boosting trained on 6,200+ records with 12 features — including property type, construction costs, professional fees, statutory charges — all calibrated to 2026 market prices.
                 </p>
-
-                <div class="mt-10 grid grid-cols-2 gap-8">
+                <div class="mt-8 sm:mt-10 grid grid-cols-2 gap-6 sm:gap-8">
                     <div>
-                        <div class="text-5xl font-semibold text-[#0055ff]">0.93</div>
-                        <div class="text-sm uppercase tracking-widest mt-1">R² Score</div>
-                        <p class="text-gray-400 text-sm">5-fold cross-validation</p>
+                        <div class="text-4xl sm:text-5xl font-bold gradient-text">0.93</div>
+                        <div class="text-xs uppercase tracking-widest mt-1 text-gray-500 dark:text-gray-400">R2 Score</div>
                     </div>
                     <div>
-                        <div class="text-5xl font-semibold text-[#0055ff]">104</div>
-                        <div class="text-sm uppercase tracking-widest mt-1">Locations</div>
-                        <p class="text-gray-400 text-sm">41 Bangalore + 63 Indore</p>
+                        <div class="text-4xl sm:text-5xl font-bold gradient-text">104</div>
+                        <div class="text-xs uppercase tracking-widest mt-1 text-gray-500 dark:text-gray-400">Locations</div>
                     </div>
                 </div>
-
-                <div class="mt-10">
-                    <h4 class="font-semibold mb-4 flex items-center"><i class="fa-solid fa-cube mr-3 text-[#0055ff]"></i> Tech Stack</h4>
+                <div class="mt-8 sm:mt-10">
+                    <h4 class="font-bold mb-4 flex items-center gap-2 dark:text-white"><i class="fa-solid fa-cube text-brand-500"></i> Tech Stack</h4>
                     <div class="flex flex-wrap gap-2">
-                        <span class="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-3xl">HTML • Tailwind</span>
-                        <span class="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-3xl">JavaScript (Fetch API)</span>
-                        <span class="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-3xl">Python + Flask</span>
-                        <span class="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-3xl">Scikit-learn</span>
-                        <span class="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-3xl">Pandas • NumPy</span>
-                        <span class="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-3xl">Gradient Boosting (500 trees)</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">HTML + Tailwind</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">JavaScript</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Three.js</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Python + Flask</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Scikit-learn</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Gradient Boosting</span>
                     </div>
                 </div>
             </div>
 
-            <div class="md:col-span-7 bg-gray-50 rounded-3xl p-8">
-                <h4 class="font-semibold mb-8 text-lg">How our model works</h4>
-                <div class="space-y-8">
-                    <div class="flex gap-6">
-                        <div class="text-5xl font-light text-gray-300 shrink-0">01</div>
+            <div class="md:col-span-7 bg-gray-50 dark:bg-surface-900 rounded-3xl p-6 sm:p-8 fade-up border border-gray-100 dark:border-white/5">
+                <h4 class="font-bold mb-6 sm:mb-8 text-lg dark:text-white">How our model works</h4>
+                <div class="space-y-6 sm:space-y-8">
+                    <div class="flex gap-4 sm:gap-6 group">
+                        <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">01</div>
                         <div>
-                            <div class="font-semibold">Market Research &amp; Data Generation</div>
-                            <p class="text-gray-500 text-sm mt-1">2026 property rates from 99acres, NoBroker &amp; Coldwell Banker + construction costs from JK Cement, Houseyog &amp; Construction Estimator India</p>
+                            <div class="font-bold dark:text-white">Market Research & Data Generation</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">2026 property rates from 99acres, NoBroker & Coldwell Banker + construction costs from industry sources</p>
                         </div>
                     </div>
-                    <div class="flex gap-6">
-                        <div class="text-5xl font-light text-gray-300 shrink-0">02</div>
+                    <div class="flex gap-4 sm:gap-6 group">
+                        <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">02</div>
                         <div>
-                            <div class="font-semibold">12-Feature Engineering</div>
-                            <p class="text-gray-500 text-sm mt-1">Area, BHK, Bath, Location, <strong>Property Type (Flat/Independent)</strong> + Construction Cost/sqft, Architect Fees, Engineer Fees, Approval/Mapping Costs, Utility Costs, GST, Resale Flag</p>
+                            <div class="font-bold dark:text-white">12-Feature Engineering</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Area, BHK, Bath, Location, Property Type + Construction, Architect, Engineer, Approval, Utility, GST, Resale</p>
                         </div>
                     </div>
-                    <div class="flex gap-6">
-                        <div class="text-5xl font-light text-gray-300 shrink-0">03</div>
+                    <div class="flex gap-4 sm:gap-6 group">
+                        <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">03</div>
                         <div>
-                            <div class="font-semibold">Gradient Boosting Training</div>
-                            <p class="text-gray-500 text-sm mt-1">500-tree GBR with 5-fold CV → R²=0.92 (Bangalore), R²=0.95 (Indore) — saved as <code class="bg-white px-1.5 rounded">models.pkl</code></p>
+                            <div class="font-bold dark:text-white">Gradient Boosting Training</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">500-tree GBR with 5-fold CV — R2=0.92 (Bangalore), R2=0.95 (Indore)</p>
                         </div>
                     </div>
-                    <div class="flex gap-6">
-                        <div class="text-5xl font-light text-gray-300 shrink-0">04</div>
+                    <div class="flex gap-4 sm:gap-6 group">
+                        <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">04</div>
                         <div>
-                            <div class="font-semibold">Cost Breakdown API</div>
-                            <p class="text-gray-500 text-sm mt-1">Flask <code class="bg-white px-1.5 rounded">/predict</code> returns price + full breakdown: land, construction, architect, engineer, approvals, utilities &amp; GST</p>
+                            <div class="font-bold dark:text-white">Cost Breakdown API</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Flask <code class="bg-white dark:bg-white/10 px-1.5 py-0.5 rounded text-xs">/predict</code> returns price + full breakdown</p>
                         </div>
                     </div>
                 </div>
@@ -494,50 +496,56 @@
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════ CONTACT -->
-<section id="contact" class="bg-[#0055ff] text-white py-16">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid md:grid-cols-12 gap-12 items-center">
-            <div class="md:col-span-5">
-                <h2 class="text-4xl font-semibold mb-4">Let's connect</h2>
-                <p class="text-white/80 text-lg mb-8">Have questions about the model? Want to collaborate on real-estate AI projects?</p>
-                <div class="flex gap-x-10">
-                    <div>
-                        <i class="fa-solid fa-envelope text-3xl mb-3"></i>
-                        <div class="text-sm font-medium">Aryansharma07370@gmail.com</div>
+<!-- ═══════════════════════════════════════════ CONTACT -->
+<section id="contact" class="relative overflow-hidden py-12 sm:py-16">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand-500 via-brand-600 to-purple-700"></div>
+    <div class="absolute inset-0 opacity-10" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><circle cx=%2230%22 cy=%2230%22 r=%221%22 fill=%22white%22/></svg>')"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="grid md:grid-cols-12 gap-8 sm:gap-12 items-center">
+            <div class="md:col-span-5 text-white fade-up">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Let's connect</h2>
+                <p class="text-white/70 text-base sm:text-lg mb-8">Have questions about the model? Want to collaborate on real-estate AI?</p>
+                <div class="flex flex-col sm:flex-row gap-6 sm:gap-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div class="text-sm">Aryansharma07370@gmail.com</div>
                     </div>
-                    <div>
-                        <i class="fa-solid fa-phone text-3xl mb-3"></i>
-                        <div class="text-sm font-medium">+91-9343117651</div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div class="text-sm">+91-9343117651</div>
                     </div>
                 </div>
-                <div class="mt-12 flex gap-x-5 text-2xl">
-                    <a href="#" class="hover:scale-110 transition-transform"><i class="fa-brands fa-linkedin"></i></a>
-                    <a href="#" class="hover:scale-110 transition-transform"><i class="fa-brands fa-github"></i></a>
-                    <a href="#" class="hover:scale-110 transition-transform"><i class="fa-brands fa-x-twitter"></i></a>
+                <div class="mt-8 sm:mt-12 flex gap-x-4">
+                    <a href="#" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all hover:scale-110"><i class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all hover:scale-110"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all hover:scale-110"><i class="fa-brands fa-x-twitter"></i></a>
                 </div>
             </div>
 
-            <div class="md:col-span-7 bg-white text-gray-900 rounded-3xl p-8">
+            <div class="md:col-span-7 bg-white dark:bg-surface-850 text-gray-900 dark:text-gray-100 rounded-3xl p-6 sm:p-8 shadow-2xl fade-up">
                 <form id="contact-form" onsubmit="handleContact(event)">
-                    <div class="grid grid-cols-2 gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs text-gray-400 font-medium">YOUR NAME</label>
-                            <input type="text" required class="block w-full mt-2 px-5 py-3.5 bg-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0055ff]">
+                            <label class="text-[10px] text-gray-400 font-bold tracking-widest">YOUR NAME</label>
+                            <input type="text" required class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="text-xs text-gray-400 font-medium">EMAIL ADDRESS</label>
-                            <input type="email" required class="block w-full mt-2 px-5 py-3.5 bg-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0055ff]">
+                            <label class="text-[10px] text-gray-400 font-bold tracking-widest">EMAIL</label>
+                            <input type="email" required class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm">
                         </div>
                     </div>
-                    <div class="mt-5">
-                        <label class="text-xs text-gray-400 font-medium">MESSAGE</label>
-                        <textarea rows="4" required placeholder="Tell us about your query…"
-                                  class="block w-full mt-2 px-5 py-3.5 bg-gray-100 rounded-2xl resize-y focus:outline-none focus:ring-2 focus:ring-[#0055ff]"></textarea>
+                    <div class="mt-4">
+                        <label class="text-[10px] text-gray-400 font-bold tracking-widest">MESSAGE</label>
+                        <textarea rows="4" required placeholder="Tell us about your query..."
+                                  class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl resize-y text-sm"></textarea>
                     </div>
                     <button type="submit" id="contact-submit-btn"
-                            class="mt-6 w-full flex items-center justify-center gap-x-3 bg-[#0055ff] hover:bg-[#0033cc] text-white h-14 rounded-3xl text-base font-semibold transition-colors">
-                        <span id="contact-btn-text"><i class="fa-solid fa-paper-plane mr-2"></i>Send Message</span>
+                            class="mt-5 w-full flex items-center justify-center gap-x-2 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white h-12 rounded-2xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[.98] shadow-lg shadow-brand-500/25">
+                        <span id="contact-btn-text"><i class="fa-solid fa-paper-plane mr-1"></i> Send Message</span>
                     </button>
                 </form>
             </div>
@@ -545,28 +553,35 @@
     </div>
 </section>
 
-<!-- ════════════════════════════════════════════ FOOTER -->
-<footer class="bg-gray-900 text-gray-400 py-10">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+<!-- ═══════════════════════════════════════════ FOOTER -->
+<footer class="bg-gray-900 dark:bg-surface-950 text-gray-400 py-8 sm:py-10 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
         <div class="flex items-center gap-x-2 text-white">
-            <div class="w-8 h-8 bg-[#0055ff] rounded-xl flex items-center justify-center">
-                <i class="fa-solid fa-house-signal text-sm"></i>
+            <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-house-signal text-xs"></i>
             </div>
-            <span class="logo-font text-xl font-semibold">SmartEstateAI</span>
+            <span class="logo-font text-lg font-semibold">SmartEstateAI</span>
         </div>
-        <p class="text-sm text-center">Built with ❤️ by Aryan Sharma • Archita Jain • Aradhya Gangrade</p>
-        <p class="text-xs">&copy; 2025 SmartEstateAI.Machine Learning Project.</p>
+        <p class="text-xs sm:text-sm text-center">Built by Aryan Sharma &bull; Archita Jain &bull; Aradhya Gangrade</p>
+        <p class="text-xs">&copy; 2026 SmartEstateAI</p>
     </div>
 </footer>
 
+<!-- Back to top -->
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        class="fixed bottom-6 right-6 w-11 h-11 bg-gradient-to-r from-brand-500 to-cyan-500 text-white rounded-xl shadow-lg shadow-brand-500/30 flex items-center justify-center opacity-0 pointer-events-none transition-all z-50 hover:scale-110">
+    <i class="fa-solid fa-arrow-up text-sm"></i>
+</button>
+
 <!-- Toast -->
-<div id="toast" class="hide fixed bottom-6 left-1/2 -translate-x-1/2 px-8 py-4 rounded-3xl text-white font-medium text-sm shadow-2xl z-[9999] transition-all duration-300">
+<div id="toast" class="hide fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-white font-medium text-sm shadow-2xl z-[9999] flex items-center gap-2">
+    <i id="toast-icon" class="fa-solid fa-check-circle"></i>
     <span id="toast-text"></span>
 </div>
 
-<!-- ════════════════════════════════════════════ JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ JAVASCRIPT -->
 <script>
-// ── Property data ─────────────────────────────
+/* ── Property Data ─────────────────────── */
 const propertiesDB = [
     { id:1, location:"Bangalore", title:"3BHK Villa in Whitefield",    bhk:3, area:2100, bathrooms:3, price:21000000, image:"/static/images/house1.png",  type:"Villa" },
     { id:2, location:"Indore",    title:"2BHK Flat in Vijay Nagar",    bhk:2, area:1050, bathrooms:2, price:5500000,  image:"/static/images/house2.jpeg", type:"Flat" },
@@ -576,412 +591,350 @@ const propertiesDB = [
     { id:6, location:"Bangalore", title:"4BHK Condo in Koramangala",   bhk:4, area:3800, bathrooms:4, price:68400000, image:"/static/images/house6.jpeg", type:"Luxury" },
     { id:7, location:"Indore",    title:"3BHK in Old Palasia",         bhk:3, area:2200, bathrooms:3, price:14300000, image:"/static/images/house7.jpeg", type:"Premium" },
     { id:8, location:"Bangalore", title:"4BHK Bungalow in Indiranagar",bhk:4, area:3200, bathrooms:4, price:57600000, image:"/static/images/house8.jpeg", type:"Bungalow" },
-]
+];
+let activeBHKs = [];
 
-let activeBHKs = []
-
-// ── Helpers ───────────────────────────────────
+/* ── Helpers ───────────────────────────── */
 function showEl(id, flex=false) {
-    const el = document.getElementById(id)
-    el.classList.remove('hide')
-    if (flex) el.classList.add('show-flex')
+    const el = document.getElementById(id);
+    el.classList.remove('hide');
+    if (flex) el.classList.add('show-flex');
 }
 function hideEl(id) {
-    const el = document.getElementById(id)
-    el.classList.add('hide')
-    el.classList.remove('show-flex')
+    const el = document.getElementById(id);
+    el.classList.add('hide');
+    el.classList.remove('show-flex');
 }
-
 function smoothScroll(id) {
-    event && event.preventDefault && event.preventDefault()
-    const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
-
 function showToast(msg, color='green') {
-    const t = document.getElementById('toast')
-    t.style.background = color === 'red' ? '#ef4444' : '#10b981'
-    document.getElementById('toast-text').textContent = msg
-    t.classList.remove('hide')
-    t.style.opacity = '1'
-    setTimeout(() => {
-        t.style.opacity = '0'
-        setTimeout(() => t.classList.add('hide'), 400)
-    }, 3500)
+    const t = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    t.style.background = color === 'red' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#10b981,#059669)';
+    icon.className = color === 'red' ? 'fa-solid fa-exclamation-circle' : 'fa-solid fa-check-circle';
+    document.getElementById('toast-text').textContent = msg;
+    t.classList.remove('hide');
+    t.style.opacity = '1';
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hide'), 400); }, 3500);
 }
 
-// ── City selection ────────────────────────────
-function selectCity(btn, city) {
-    document.getElementById('selected-city').value = city
-    document.querySelectorAll('.city-btn').forEach(b => {
-        b.classList.remove('border-[#0055ff]', 'bg-blue-50', 'text-[#0055ff]')
-        b.classList.add('border-gray-200')
-        b.querySelector('i').classList.remove('text-[#0055ff]')
-        b.querySelector('i').classList.add('text-gray-400')
-    })
-    btn.classList.add('border-[#0055ff]', 'bg-blue-50', 'text-[#0055ff]')
-    btn.querySelector('i').classList.remove('text-gray-400')
-    btn.querySelector('i').classList.add('text-[#0055ff]')
-    fetchLocations(city)
+/* ── Dark Mode ─────────────────────────── */
+function toggleDarkMode() {
+    const html = document.documentElement;
+    html.classList.toggle('dark');
+    const isDark = html.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
 }
-
-function selectPropertyType(btn, ptype) {
-    document.getElementById('selected-property-type').value = ptype
-    document.querySelectorAll('.prop-btn').forEach(b => {
-        b.classList.remove('border-[#0055ff]', 'bg-blue-50')
-        b.classList.add('border-gray-200')
-        b.querySelector('i').classList.remove('text-[#0055ff]')
-        b.querySelector('i').classList.add('text-gray-400')
-        b.querySelector('span').classList.remove('text-[#0055ff]')
-    })
-    btn.classList.add('border-[#0055ff]', 'bg-blue-50')
-    btn.classList.remove('border-gray-200')
-    btn.querySelector('i').classList.remove('text-gray-400')
-    btn.querySelector('i').classList.add('text-[#0055ff]')
-    btn.querySelector('span').classList.add('text-[#0055ff]')
-}
-
-// ── Fetch location list from Flask ───────────
-async function fetchLocations(city) {
-    const sel = document.getElementById('location-select')
-    sel.innerHTML = '<option value="">Loading…</option>'
-    try {
-        const resp = await fetch(`/locations?city=${city}`)
-        const data = await resp.json()
-        sel.innerHTML = `<option value="">— Select location —</option>`
-        data.locations.forEach(loc => {
-            const opt = document.createElement('option')
-            opt.value = opt.textContent = loc
-            sel.appendChild(opt)
-        })
-    } catch(e) {
-        sel.innerHTML = '<option value="">Failed to load — is Flask running?</option>'
+function initTheme() {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').className = 'fa-solid fa-sun text-sm';
     }
 }
 
-// ── Prediction ────────────────────────────────
+/* ── Scroll Progress + Back to Top ──── */
+function updateScrollUI() {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    document.getElementById('scroll-progress').style.width = pct + '%';
+    const btn = document.getElementById('back-to-top');
+    if (window.scrollY > 400) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+    else { btn.style.opacity = '0'; btn.style.pointerEvents = 'none'; }
+}
+
+/* ── Intersection Observer (fade-up) ── */
+function initScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }});
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+}
+
+/* ── 3D Hero (Three.js Particles) ───── */
+function init3DHero() {
+    const canvas = document.getElementById('hero-canvas');
+    if (!canvas) return;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const section = canvas.parentElement;
+    renderer.setSize(section.clientWidth, section.clientHeight);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, section.clientWidth / section.clientHeight, 0.1, 1000);
+    camera.position.z = 30;
+
+    // Particles
+    const count = window.innerWidth < 768 ? 600 : 1500;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * 60;
+        pos[i*3+1] = (Math.random() - 0.5) * 60;
+        pos[i*3+2] = (Math.random() - 0.5) * 40;
+        const t = Math.random();
+        colors[i*3]   = t < 0.5 ? 0 : 0.6;
+        colors[i*3+1] = t < 0.5 ? 0.33 : 0.1;
+        colors[i*3+2] = t < 0.5 ? 1 : 1;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.7, sizeAttenuation: true });
+    const particles = new THREE.Points(geo, mat);
+    scene.add(particles);
+
+    // Wireframe house shape
+    const houseGeo = new THREE.BoxGeometry(6, 5, 6);
+    const houseEdges = new THREE.EdgesGeometry(houseGeo);
+    const houseLine = new THREE.LineSegments(houseEdges, new THREE.LineBasicMaterial({ color: 0x0055ff, transparent: true, opacity: 0.15 }));
+    houseLine.position.set(12, 0, -5);
+    scene.add(houseLine);
+
+    // Roof
+    const roofGeo = new THREE.ConeGeometry(5.5, 3, 4);
+    const roofEdges = new THREE.EdgesGeometry(roofGeo);
+    const roofLine = new THREE.LineSegments(roofEdges, new THREE.LineBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.15 }));
+    roofLine.position.set(12, 4, -5);
+    roofLine.rotation.y = Math.PI / 4;
+    scene.add(roofLine);
+
+    let mouse = { x: 0, y: 0 };
+    document.addEventListener('mousemove', (e) => {
+        mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        particles.rotation.y += 0.0008;
+        particles.rotation.x += 0.0003;
+        houseLine.rotation.y += 0.005;
+        roofLine.rotation.y += 0.005;
+        camera.position.x += (mouse.x * 3 - camera.position.x) * 0.02;
+        camera.position.y += (-mouse.y * 2 - camera.position.y) * 0.02;
+        camera.lookAt(scene.position);
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        const w = section.clientWidth, h = section.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    });
+}
+
+/* ── City Selection ────────────────────── */
+function selectCity(btn, city) {
+    document.getElementById('selected-city').value = city;
+    document.querySelectorAll('.city-btn').forEach(b => {
+        b.classList.remove('border-brand-500', 'bg-brand-50', 'dark:bg-brand-500/10');
+        b.classList.add('border-gray-200', 'dark:border-white/10');
+    });
+    btn.classList.add('border-brand-500', 'bg-brand-50', 'dark:bg-brand-500/10');
+    btn.classList.remove('border-gray-200', 'dark:border-white/10');
+    fetchLocations(city);
+}
+
+function selectPropertyType(btn, ptype) {
+    document.getElementById('selected-property-type').value = ptype;
+    document.querySelectorAll('.prop-btn').forEach(b => {
+        b.classList.remove('border-brand-500', 'bg-brand-50', 'dark:bg-brand-500/10');
+        b.classList.add('border-gray-200', 'dark:border-white/10');
+        b.querySelector('i').classList.remove('text-brand-500'); b.querySelector('i').classList.add('text-gray-400','dark:text-gray-500');
+        b.querySelector('span').classList.remove('text-brand-500'); b.querySelector('span').classList.add('text-gray-600','dark:text-gray-400');
+    });
+    btn.classList.add('border-brand-500', 'bg-brand-50', 'dark:bg-brand-500/10');
+    btn.classList.remove('border-gray-200', 'dark:border-white/10');
+    btn.querySelector('i').classList.remove('text-gray-400','dark:text-gray-500'); btn.querySelector('i').classList.add('text-brand-500');
+    btn.querySelector('span').classList.remove('text-gray-600','dark:text-gray-400'); btn.querySelector('span').classList.add('text-brand-500');
+}
+
+/* ── Fetch Locations ───────────────────── */
+async function fetchLocations(city) {
+    const sel = document.getElementById('location-select');
+    sel.innerHTML = '<option value="">Loading...</option>';
+    try {
+        const resp = await fetch(`/locations?city=${city}`);
+        const data = await resp.json();
+        sel.innerHTML = '<option value="">-- Select location --</option>';
+        data.locations.forEach(loc => { const o = document.createElement('option'); o.value = o.textContent = loc; sel.appendChild(o); });
+    } catch(e) { sel.innerHTML = '<option value="">Failed to load</option>'; }
+}
+
+/* ── Prediction ────────────────────────── */
 async function handlePrediction(e) {
-    e.preventDefault()
+    e.preventDefault();
+    const city = document.getElementById('selected-city').value;
+    const location = document.getElementById('location-select').value;
+    const area = parseInt(document.getElementById('area').value);
+    const bhk = parseInt(document.getElementById('bhk').value);
+    const baths = parseInt(document.getElementById('bathrooms').value);
+    const propType = document.getElementById('selected-property-type').value || 'flat';
 
-    const city     = document.getElementById('selected-city').value
-    const location = document.getElementById('location-select').value
-    const area     = parseInt(document.getElementById('area').value)
-    const bhk      = parseInt(document.getElementById('bhk').value)
-    const baths    = parseInt(document.getElementById('bathrooms').value)
-    const propType = document.getElementById('selected-property-type').value || 'flat'
+    if (!city) { showToast('Please select a city!', 'red'); return; }
+    if (!location) { showToast('Please select a location!', 'red'); return; }
 
-    if (!city)     { showToast('Please select a city!', 'red'); return }
-    if (!location) { showToast('Please select a location!', 'red'); return }
-
-    // Show loading
-    hideEl('empty-state')
-    hideEl('result-panel')
-    showEl('loading-state', true)
-
-    // Update button
-    document.getElementById('btn-text').textContent = 'Predicting…'
-    document.getElementById('btn-icon').className = 'fa-solid fa-spinner spinner'
-    document.getElementById('predict-btn').disabled = true
+    hideEl('empty-state'); hideEl('result-panel'); showEl('loading-state', true);
+    document.getElementById('btn-text').textContent = 'Predicting...';
+    document.getElementById('btn-icon').className = 'fa-solid fa-spinner spinner';
+    document.getElementById('predict-btn').disabled = true;
 
     try {
         const resp = await fetch('/predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ city, location, area, bhk, bathrooms: baths, property_type: propType })
-        })
-        const data = await resp.json()
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
 
-        if (data.error) throw new Error(data.error)
+        const priceLakhs = data.price_lakhs;
+        const displayStr = priceLakhs >= 100 ? `₹${(priceLakhs / 100).toFixed(2)} Cr` : `₹${priceLakhs.toFixed(1)} L`;
 
-        const priceLakhs = data.price_lakhs
-        const priceCr    = (priceLakhs / 100).toFixed(2)
-        const displayStr = priceLakhs >= 100
-            ? `₹${priceCr} Cr`
-            : `₹${priceLakhs.toFixed(1)} L`
-
-        hideEl('loading-state')
-        showEl('result-panel')
-
-        document.getElementById('result-city').textContent = `${city} — ${location}`
-        document.getElementById('result-price').innerHTML  = `
-            <div class="text-5xl font-bold text-[#0055ff]">${displayStr}</div>
-            <div class="text-emerald-500 text-xs font-semibold mt-1">Estimated Market Value</div>
-        `
-        document.getElementById('input-summary').textContent =
-            `${city} • ${area} sq ft • ${bhk} BHK • ${baths} Bath • ${propType === 'independent' ? 'Independent' : 'Flat'}`
-
-        // Show per-sqft, zone, construction cost badges
-        document.getElementById('result-psqft').textContent = `₹${data.price_psqft?.toLocaleString('en-IN') || '—'}/sqft`
-        document.getElementById('result-zone').textContent = data.zone || ''
-        document.getElementById('result-cc').textContent = `Construction: ₹${data.construction_cost_psqft?.toLocaleString('en-IN') || '—'}/sqft`
-
-        // Render cost breakdown
-        renderBreakdown(data.breakdown, priceLakhs)
-
-        renderSimilar(city)
-        showToast(`Predicted: ${displayStr}`)
-
+        hideEl('loading-state'); showEl('result-panel');
+        document.getElementById('result-city').textContent = `${city} — ${location}`;
+        document.getElementById('result-price').innerHTML = `<div class="text-3xl sm:text-5xl font-bold gradient-text">${displayStr}</div><div class="text-emerald-500 text-xs font-bold mt-1">Estimated Market Value</div>`;
+        document.getElementById('input-summary').textContent = `${city} • ${area} sq ft • ${bhk} BHK • ${baths} Bath • ${propType === 'independent' ? 'Independent' : 'Flat'}`;
+        document.getElementById('result-psqft').textContent = `₹${data.price_psqft?.toLocaleString('en-IN') || '—'}/sqft`;
+        document.getElementById('result-zone').textContent = data.zone || '';
+        document.getElementById('result-cc').textContent = `Construction: ₹${data.construction_cost_psqft?.toLocaleString('en-IN') || '—'}/sqft`;
+        renderBreakdown(data.breakdown, priceLakhs);
+        renderSimilar(city);
+        showToast(`Predicted: ${displayStr}`);
     } catch(err) {
-        hideEl('loading-state')
-        showEl('empty-state')
-        showToast('Prediction failed: ' + err.message, 'red')
-        console.error(err)
+        hideEl('loading-state'); showEl('empty-state');
+        showToast('Prediction failed: ' + err.message, 'red');
     } finally {
-        document.getElementById('btn-text').textContent = 'Predict Price Now'
-        document.getElementById('btn-icon').className  = 'fa-solid fa-arrow-right'
-        document.getElementById('predict-btn').disabled = false
+        document.getElementById('btn-text').textContent = 'Predict Price Now';
+        document.getElementById('btn-icon').className = 'fa-solid fa-arrow-right';
+        document.getElementById('predict-btn').disabled = false;
     }
 }
 
 function renderBreakdown(breakdown, totalLakhs) {
-    const container = document.getElementById('cost-breakdown')
-    if (!breakdown || !container) return
-    container.innerHTML = ''
-
+    const c = document.getElementById('cost-breakdown');
+    if (!breakdown || !c) return; c.innerHTML = '';
     const colors = {
-        land_and_margin: { bg: 'bg-violet-100', text: 'text-violet-700', bar: 'bg-violet-500', icon: 'fa-solid fa-map-location-dot' },
-        construction:    { bg: 'bg-blue-100',   text: 'text-blue-700',   bar: 'bg-blue-500',   icon: 'fa-solid fa-helmet-safety' },
-        architect_fee:   { bg: 'bg-cyan-100',   text: 'text-cyan-700',   bar: 'bg-cyan-500',   icon: 'fa-solid fa-compass-drafting' },
-        engineer_fee:    { bg: 'bg-teal-100',   text: 'text-teal-700',   bar: 'bg-teal-500',   icon: 'fa-solid fa-building-columns' },
-        approval_fee:    { bg: 'bg-amber-100',  text: 'text-amber-700',  bar: 'bg-amber-500',  icon: 'fa-solid fa-file-signature' },
-        utility_cost:    { bg: 'bg-orange-100', text: 'text-orange-700', bar: 'bg-orange-500',  icon: 'fa-solid fa-bolt' },
-        gst:             { bg: 'bg-rose-100',   text: 'text-rose-700',   bar: 'bg-rose-500',    icon: 'fa-solid fa-receipt' },
-    }
-
-    const order = ['land_and_margin', 'construction', 'architect_fee', 'engineer_fee', 'approval_fee', 'utility_cost', 'gst']
-
-    order.forEach(key => {
-        const item = breakdown[key]
-        if (!item) return
-        const pct = totalLakhs > 0 ? ((item.amount_lakhs / totalLakhs) * 100).toFixed(1) : 0
-        const c = colors[key] || { bg: 'bg-gray-100', text: 'text-gray-700', bar: 'bg-gray-500', icon: 'fa-solid fa-circle' }
-        const amtStr = item.amount_lakhs >= 100
-            ? `₹${(item.amount_lakhs / 100).toFixed(2)} Cr`
-            : `₹${item.amount_lakhs.toFixed(1)} L`
-
-        container.innerHTML += `
-        <div class="flex items-center gap-3">
-            <div class="w-7 h-7 ${c.bg} rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="${c.icon} ${c.text} text-xs"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex justify-between items-center mb-0.5">
-                    <span class="text-xs text-gray-600 truncate">${item.label}</span>
-                    <span class="text-xs font-bold ${c.text} ml-2 whitespace-nowrap">${amtStr} (${pct}%)</span>
-                </div>
-                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full ${c.bar} rounded-full transition-all duration-700" style="width:${Math.min(pct, 100)}%"></div>
-                </div>
-            </div>
-        </div>`
-    })
+        land_and_margin: { bg:'bg-violet-100 dark:bg-violet-500/10', text:'text-violet-600 dark:text-violet-400', bar:'bg-violet-500', icon:'fa-solid fa-map-location-dot' },
+        construction:    { bg:'bg-blue-100 dark:bg-blue-500/10', text:'text-blue-600 dark:text-blue-400', bar:'bg-blue-500', icon:'fa-solid fa-helmet-safety' },
+        architect_fee:   { bg:'bg-cyan-100 dark:bg-cyan-500/10', text:'text-cyan-600 dark:text-cyan-400', bar:'bg-cyan-500', icon:'fa-solid fa-compass-drafting' },
+        engineer_fee:    { bg:'bg-teal-100 dark:bg-teal-500/10', text:'text-teal-600 dark:text-teal-400', bar:'bg-teal-500', icon:'fa-solid fa-building-columns' },
+        approval_fee:    { bg:'bg-amber-100 dark:bg-amber-500/10', text:'text-amber-600 dark:text-amber-400', bar:'bg-amber-500', icon:'fa-solid fa-file-signature' },
+        utility_cost:    { bg:'bg-orange-100 dark:bg-orange-500/10', text:'text-orange-600 dark:text-orange-400', bar:'bg-orange-500', icon:'fa-solid fa-bolt' },
+        gst:             { bg:'bg-rose-100 dark:bg-rose-500/10', text:'text-rose-600 dark:text-rose-400', bar:'bg-rose-500', icon:'fa-solid fa-receipt' },
+    };
+    ['land_and_margin','construction','architect_fee','engineer_fee','approval_fee','utility_cost','gst'].forEach(key => {
+        const item = breakdown[key]; if (!item) return;
+        const pct = totalLakhs > 0 ? ((item.amount_lakhs / totalLakhs) * 100).toFixed(1) : 0;
+        const cl = colors[key];
+        const amtStr = item.amount_lakhs >= 100 ? `₹${(item.amount_lakhs/100).toFixed(2)} Cr` : `₹${item.amount_lakhs.toFixed(1)} L`;
+        c.innerHTML += `<div class="flex items-center gap-3"><div class="w-7 h-7 ${cl.bg} rounded-lg flex items-center justify-center flex-shrink-0"><i class="${cl.icon} ${cl.text} text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-xs text-gray-600 dark:text-gray-400 truncate">${item.label}</span><span class="text-xs font-bold ${cl.text} ml-2 whitespace-nowrap">${amtStr} (${pct}%)</span></div><div class="h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full ${cl.bar} rounded-full transition-all duration-700" style="width:${Math.min(pct,100)}%"></div></div></div></div>`;
+    });
 }
 
 function renderSimilar(city) {
-    const container = document.getElementById('similar-properties')
-    container.innerHTML = ''
-    const similars = propertiesDB.filter(p => p.location === city).slice(0, 3)
-    similars.forEach(p => {
-        const crStr = p.price >= 10000000
-            ? `₹${(p.price/10000000).toFixed(1)} Cr`
-            : `₹${(p.price/100000).toFixed(0)} L`
-        container.innerHTML += `
-        <div onclick="viewPropertyDetail(${p.id})" class="cursor-pointer card-hover">
-            <img src="${p.image}" class="w-full h-28 object-cover rounded-2xl mb-2" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'">
-            <div class="text-xs font-semibold leading-tight">${p.title}</div>
-            <div class="text-[#0055ff] font-bold text-sm">${crStr}</div>
-        </div>`
-    })
+    const c = document.getElementById('similar-properties'); c.innerHTML = '';
+    propertiesDB.filter(p => p.location === city).slice(0,3).forEach(p => {
+        const crStr = p.price >= 10000000 ? `₹${(p.price/10000000).toFixed(1)} Cr` : `₹${(p.price/100000).toFixed(0)} L`;
+        c.innerHTML += `<div onclick="viewPropertyDetail(${p.id})" class="cursor-pointer card-hover"><img src="${p.image}" class="w-full h-20 sm:h-28 object-cover rounded-xl mb-2" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'"><div class="text-[10px] sm:text-xs font-bold leading-tight dark:text-gray-300">${p.title}</div><div class="gradient-text font-bold text-xs sm:text-sm">${crStr}</div></div>`;
+    });
 }
 
 function resetPrediction() {
-    hideEl('result-panel')
-    hideEl('loading-state')
-    showEl('empty-state')
-    document.getElementById('prediction-form').reset()
-    document.getElementById('selected-city').value = ''
-    document.getElementById('location-select').innerHTML = '<option value="">— Select city first —</option>'
+    hideEl('result-panel'); hideEl('loading-state'); showEl('empty-state');
+    document.getElementById('prediction-form').reset();
+    document.getElementById('selected-city').value = '';
+    document.getElementById('location-select').innerHTML = '<option value="">— Select city first —</option>';
     document.querySelectorAll('.city-btn').forEach(b => {
-        b.classList.remove('border-[#0055ff]','bg-blue-50','text-[#0055ff]')
-        b.classList.add('border-gray-200')
-        b.querySelector('i').classList.remove('text-[#0055ff]')
-        b.querySelector('i').classList.add('text-gray-400')
-    })
+        b.classList.remove('border-brand-500','bg-brand-50','dark:bg-brand-500/10');
+        b.classList.add('border-gray-200','dark:border-white/10');
+    });
 }
 
-// ── Listings ──────────────────────────────────
-function renderFeatured() {
-    const container = document.getElementById('featured-grid')
-    container.innerHTML = ''
-    propertiesDB.slice(0, 4).forEach(p => {
-        const crStr = p.price >= 10000000
-            ? `₹${(p.price/10000000).toFixed(1)} Cr`
-            : `₹${(p.price/100000).toFixed(0)} L`
-        container.innerHTML += `
-        <div onclick="viewPropertyDetail(${p.id})" class="card-hover bg-white rounded-3xl overflow-hidden cursor-pointer border border-gray-100 shadow-sm">
-            <div class="relative">
-                <img src="${p.image}" alt="${p.title}" class="w-full h-52 object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'">
-                <div class="absolute top-4 left-4 px-3 py-1 bg-white rounded-xl text-xs font-semibold shadow">${p.location}</div>
-                <div class="absolute top-4 right-4 bg-white/90 text-[#0055ff] text-xs font-bold px-3 py-1 rounded-xl shadow">${crStr}</div>
-            </div>
-            <div class="p-5">
-                <div class="font-semibold">${p.title}</div>
-                <div class="flex justify-between text-sm mt-3 text-gray-500">
-                    <div>${p.bhk} BHK • ${p.area} sq ft</div>
-                    <div class="text-emerald-500">${p.bathrooms} Baths</div>
-                </div>
-            </div>
-        </div>`
-    })
+/* ── Listings ──────────────────────────── */
+function renderCard(p, featured=false) {
+    const crStr = p.price >= 10000000 ? `₹${(p.price/10000000).toFixed(1)} Cr` : `₹${(p.price/100000).toFixed(0)} L`;
+    const h = featured ? 'h-44 sm:h-52' : 'h-40 sm:h-48';
+    return `<div onclick="viewPropertyDetail(${p.id})" class="card-hover bg-white dark:bg-surface-850 rounded-2xl overflow-hidden cursor-pointer border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none"><div class="relative"><img src="${p.image}" alt="${p.title}" class="w-full ${h} object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'"><div class="absolute top-3 left-3 px-2.5 py-1 bg-white/90 dark:bg-surface-900/90 backdrop-blur rounded-lg text-[10px] font-bold shadow">${p.location}</div><div class="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-cyan-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow">${crStr}</div></div><div class="p-4"><div class="font-bold text-sm leading-tight dark:text-white">${p.title}</div><div class="flex justify-between mt-3 text-[10px] text-gray-500 dark:text-gray-400"><div><i class="fa-solid fa-bed mr-1"></i>${p.bhk} BHK</div><div><i class="fa-solid fa-ruler-combined mr-1"></i>${p.area} sqft</div><div><i class="fa-solid fa-bath mr-1"></i>${p.bathrooms}</div></div></div></div>`;
 }
-
+function renderFeatured() { document.getElementById('featured-grid').innerHTML = propertiesDB.slice(0,4).map(p => renderCard(p,true)).join(''); }
 function renderListings(list) {
-    const container = document.getElementById('listings-grid')
-    container.innerHTML = ''
-    if (!list.length) {
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">No properties match your filters. Try broadening your search!</div>`
-        return
-    }
-    list.forEach(p => {
-        container.innerHTML += `
-        <div onclick="viewPropertyDetail(${p.id})" class="card-hover bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm border border-gray-100">
-            <div class="relative">
-                <img src="${p.image}" alt="${p.title}" class="w-full h-48 object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'">
-                <div class="absolute top-4 left-4 px-3 py-1 bg-white rounded-xl text-xs font-semibold shadow">${p.location}</div>
-                <div class="absolute bottom-4 right-4 bg-gradient-to-r from-[#0055ff] to-cyan-400 text-white text-xs font-bold px-4 h-7 flex items-center rounded-2xl shadow">
-                    ₹${p.price.toLocaleString('en-IN')}
-                </div>
-            </div>
-            <div class="px-5 py-4">
-                <div class="font-semibold leading-tight">${p.title}</div>
-                <div class="flex justify-between mt-4 text-xs text-gray-500">
-                    <div><i class="fa-solid fa-bed mr-1"></i> ${p.bhk} BHK</div>
-                    <div><i class="fa-solid fa-ruler-combined mr-1"></i> ${p.area} sq ft</div>
-                    <div><i class="fa-solid fa-bath mr-1"></i> ${p.bathrooms}</div>
-                </div>
-            </div>
-        </div>`
-    })
+    const c = document.getElementById('listings-grid');
+    if (!list.length) { c.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400 dark:text-gray-500">No properties match. Try broadening your search!</div>'; return; }
+    c.innerHTML = list.map(p => renderCard(p)).join('');
 }
-
 function applyFilters() {
-    const loc      = document.getElementById('filter-location').value
-    const minPrice = parseInt(document.getElementById('price-min').value) || 0
-    const maxPrice = parseInt(document.getElementById('price-max').value) || Infinity
-
-    let filtered = propertiesDB
-    if (loc !== 'all') filtered = filtered.filter(p => p.location === loc)
-    if (activeBHKs.length) filtered = filtered.filter(p => {
-        if (activeBHKs.includes(4)) return p.bhk >= 4
-        return activeBHKs.includes(p.bhk)
-    })
-    filtered = filtered.filter(p => p.price >= minPrice && p.price <= maxPrice)
-    renderListings(filtered)
+    const loc = document.getElementById('filter-location').value;
+    const minP = parseInt(document.getElementById('price-min').value) || 0;
+    const maxP = parseInt(document.getElementById('price-max').value) || Infinity;
+    let f = propertiesDB;
+    if (loc !== 'all') f = f.filter(p => p.location === loc);
+    if (activeBHKs.length) f = f.filter(p => activeBHKs.includes(4) ? p.bhk >= 4 : activeBHKs.includes(p.bhk));
+    f = f.filter(p => p.price >= minP && p.price <= maxP);
+    renderListings(f);
 }
-
 function toggleBHK(bhk, btn) {
-    if (activeBHKs.includes(bhk)) {
-        activeBHKs = activeBHKs.filter(b => b !== bhk)
-        btn.classList.remove('border-[#0055ff]','bg-blue-50','text-[#0055ff]')
-        btn.classList.add('border-gray-200')
-    } else {
-        activeBHKs.push(bhk)
-        btn.classList.add('border-[#0055ff]','bg-blue-50','text-[#0055ff]')
-        btn.classList.remove('border-gray-200')
-    }
-    applyFilters()
+    if (activeBHKs.includes(bhk)) { activeBHKs = activeBHKs.filter(b => b !== bhk); btn.classList.remove('border-brand-500','bg-brand-50','text-brand-500','dark:bg-brand-500/10'); btn.classList.add('border-gray-200','dark:border-white/10'); }
+    else { activeBHKs.push(bhk); btn.classList.add('border-brand-500','bg-brand-50','text-brand-500','dark:bg-brand-500/10'); btn.classList.remove('border-gray-200','dark:border-white/10'); }
+    applyFilters();
 }
-
 function resetFilters() {
-    activeBHKs = []
-    document.getElementById('filter-location').value = 'all'
-    document.getElementById('price-min').value = 2000000
-    document.getElementById('price-max').value = 50000000
-    document.querySelectorAll('.bhk-btn').forEach(b => {
-        b.classList.remove('border-[#0055ff]','bg-blue-50','text-[#0055ff]')
-        b.classList.add('border-gray-200')
-    })
-    renderListings(propertiesDB)
+    activeBHKs = [];
+    document.getElementById('filter-location').value = 'all';
+    document.getElementById('price-min').value = 2000000;
+    document.getElementById('price-max').value = 50000000;
+    document.querySelectorAll('.bhk-btn').forEach(b => { b.classList.remove('border-brand-500','bg-brand-50','text-brand-500','dark:bg-brand-500/10'); b.classList.add('border-gray-200','dark:border-white/10'); });
+    renderListings(propertiesDB);
 }
 
-// ── Property modal ────────────────────────────
+/* ── Property Modal ────────────────────── */
 function viewPropertyDetail(id) {
-    const p = propertiesDB.find(x => x.id === id)
-    if (!p) return
-    const crStr = p.price >= 10000000
-        ? `₹${(p.price/10000000).toFixed(2)} Cr`
-        : `₹${(p.price/100000).toFixed(0)} L`
-    const div = document.createElement('div')
-    div.innerHTML = `
-    <div id="modal-backdrop" onclick="if(event.target.id==='modal-backdrop')this.remove()"
-         class="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
-        <div onclick="event.stopPropagation()" class="bg-white max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl">
-            <img src="${p.image}" class="w-full h-64 object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=70'">
-            <div class="p-8">
-                <div class="flex justify-between items-start">
-                    <span class="text-4xl font-bold text-[#0055ff]">${crStr}</span>
-                    <span class="text-emerald-500 font-semibold">${p.location}</span>
-                </div>
-                <h2 class="text-xl font-semibold mt-2">${p.title}</h2>
-                <div class="flex gap-x-8 mt-6">
-                    <div><span class="block text-xs text-gray-400 mb-1">BHK</span><span class="text-3xl font-semibold">${p.bhk}</span></div>
-                    <div><span class="block text-xs text-gray-400 mb-1">AREA</span><span class="text-3xl font-semibold">${p.area} <span class="text-sm">sq ft</span></span></div>
-                    <div><span class="block text-xs text-gray-400 mb-1">BATHS</span><span class="text-3xl font-semibold">${p.bathrooms}</span></div>
-                </div>
-                <p class="mt-6 text-gray-500 text-sm">This property listing was part of the training dataset for our Linear Regression model.</p>
-                <button onclick="this.closest('#modal-backdrop').remove()"
-                        class="mt-6 w-full py-4 bg-gray-900 text-white rounded-3xl font-medium hover:bg-gray-700 transition-colors">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>`
-    document.body.appendChild(div.firstElementChild)
+    const p = propertiesDB.find(x => x.id === id);
+    if (!p) return;
+    const crStr = p.price >= 10000000 ? `₹${(p.price/10000000).toFixed(2)} Cr` : `₹${(p.price/100000).toFixed(0)} L`;
+    const div = document.createElement('div');
+    div.innerHTML = `<div id="modal-backdrop" onclick="if(event.target.id==='modal-backdrop')this.remove()" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" style="animation:fadeUp .3s ease"><div onclick="event.stopPropagation()" class="bg-white dark:bg-surface-850 max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl"><img src="${p.image}" class="w-full h-48 sm:h-64 object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=70'"><div class="p-6 sm:p-8"><div class="flex justify-between items-start"><span class="text-3xl sm:text-4xl font-bold gradient-text">${crStr}</span><span class="text-emerald-500 font-bold text-sm">${p.location}</span></div><h2 class="text-lg sm:text-xl font-bold mt-2 dark:text-white">${p.title}</h2><div class="flex gap-x-6 sm:gap-x-8 mt-5"><div><span class="block text-[10px] text-gray-400 mb-1">BHK</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.bhk}</span></div><div><span class="block text-[10px] text-gray-400 mb-1">AREA</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.area} <span class="text-xs">sqft</span></span></div><div><span class="block text-[10px] text-gray-400 mb-1">BATHS</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.bathrooms}</span></div></div><button onclick="this.closest('#modal-backdrop').remove()" class="mt-6 w-full py-3.5 bg-gray-900 dark:bg-white/10 text-white rounded-2xl font-medium hover:bg-gray-700 dark:hover:bg-white/20 transition-colors text-sm">Close</button></div></div></div>`;
+    document.body.appendChild(div.firstElementChild);
 }
 
-// ── Contact ───────────────────────────────────
+/* ── Contact ───────────────────────────── */
 function handleContact(e) {
-    e.preventDefault()
-    const btn     = document.getElementById('contact-submit-btn')
-    const btnText = document.getElementById('contact-btn-text')
-    btnText.innerHTML = '<i class="fa-solid fa-spinner spinner mr-2"></i> Sending…'
-    btn.disabled = true
+    e.preventDefault();
+    const btn = document.getElementById('contact-submit-btn');
+    const txt = document.getElementById('contact-btn-text');
+    txt.innerHTML = '<i class="fa-solid fa-spinner spinner mr-1"></i> Sending...';
+    btn.disabled = true;
     setTimeout(() => {
-        btn.style.background = '#10b981'
-        btnText.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Message Sent!'
-        showToast('Thank you! Our team will reply within 24 hours.')
-        e.target.reset()
-        setTimeout(() => {
-            btn.style.background = ''
-            btn.disabled = false
-            btnText.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>Send Message'
-        }, 3000)
-    }, 1400)
+        txt.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Message Sent!';
+        btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+        showToast('Thank you! We\'ll reply within 24 hours.');
+        e.target.reset();
+        setTimeout(() => { btn.style.background = ''; btn.disabled = false; txt.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Send Message'; }, 3000);
+    }, 1400);
 }
 
-// ── Mobile menu ───────────────────────────────
+/* ── Mobile Menu ───────────────────────── */
 function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu')
-    const icon = document.getElementById('hamburger-icon')
-    if (menu.classList.contains('hidden')) {
-        menu.classList.remove('hidden')
-        icon.className = 'fa-solid fa-xmark'
-    } else {
-        menu.classList.add('hidden')
-        icon.className = 'fa-solid fa-bars'
-    }
+    const m = document.getElementById('mobile-menu'), i = document.getElementById('hamburger-icon');
+    if (m.classList.contains('hidden')) { m.classList.remove('hidden'); i.className = 'fa-solid fa-xmark'; }
+    else { m.classList.add('hidden'); i.className = 'fa-solid fa-bars'; }
 }
-function closeMobileMenu() {
-    document.getElementById('mobile-menu').classList.add('hidden')
-    document.getElementById('hamburger-icon').className = 'fa-solid fa-bars'
-}
+function closeMobileMenu() { document.getElementById('mobile-menu').classList.add('hidden'); document.getElementById('hamburger-icon').className = 'fa-solid fa-bars'; }
 
-// ── Init ──────────────────────────────────────
+/* ── Init ──────────────────────────────── */
 window.onload = () => {
-    renderFeatured()
-    renderListings(propertiesDB)
-    console.log('%c SmartEstate AI — Real Flask + sklearn backend connected ', 'color:#0055ff;font-weight:bold;background:#e0eaff;padding:4px 8px;border-radius:6px')
-}
+    initTheme();
+    renderFeatured();
+    renderListings(propertiesDB);
+    init3DHero();
+    initScrollAnimations();
+    window.addEventListener('scroll', updateScrollUI, { passive: true });
+};
 </script>
 </body>
 </html>
