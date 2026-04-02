@@ -94,18 +94,18 @@
 
             <!-- Desktop nav -->
             <div class="hidden md:flex items-center gap-x-8 text-sm font-medium">
-                <a href="#home"     onclick="scrollTo('home')"     class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Home</a>
-                <a href="#listings" onclick="scrollTo('listings')" class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Listings</a>
-                <a href="#predict"  onclick="scrollTo('predict')"  class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Predictor</a>
-                <a href="#about"    onclick="scrollTo('about')"    class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">How AI Works</a>
-                <a href="#contact"  onclick="scrollTo('contact')"  class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Contact</a>
+                <a href="#home"     onclick="event.preventDefault();smoothScroll('home')"     class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Home</a>
+                <a href="#listings" onclick="event.preventDefault();smoothScroll('listings')" class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Listings</a>
+                <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict')"  class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Predictor</a>
+                <a href="#about"    onclick="event.preventDefault();smoothScroll('about')"    class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">How AI Works</a>
+                <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact')"  class="nav-link text-gray-700 hover:text-[#0055ff] pb-1">Contact</a>
             </div>
 
             <div class="flex items-center gap-x-3">
                 <div class="hidden sm:flex items-center text-xs font-semibold px-4 h-9 bg-gradient-to-r from-blue-50 to-cyan-50 text-[#0055ff] rounded-3xl border border-blue-100">
                     <i class="fa-solid fa-map-pin mr-1"></i> Indore &amp; Bangalore
                 </div>
-                <button onclick="scrollTo('predict')"
+                <button onclick="smoothScroll('predict')"
                         class="px-5 py-2.5 bg-[#0055ff] hover:bg-[#0033cc] text-white text-sm font-semibold rounded-3xl flex items-center gap-x-2 shadow-lg shadow-blue-500/30 transition-colors">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Now
                 </button>
@@ -119,17 +119,17 @@
     <!-- Mobile menu -->
     <div id="mobile-menu" class="hidden md:hidden bg-white border-t px-6 py-4">
         <div class="flex flex-col gap-y-3 text-sm font-medium">
-            <a href="#home"     onclick="scrollTo('home');closeMobileMenu()"     class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-house w-5"></i> Home</a>
-            <a href="#listings" onclick="scrollTo('listings');closeMobileMenu()" class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-list-ul w-5"></i> Listings</a>
-            <a href="#predict"  onclick="scrollTo('predict');closeMobileMenu()"  class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-chart-line w-5"></i> AI Predictor</a>
-            <a href="#about"    onclick="scrollTo('about');closeMobileMenu()"    class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-brain w-5"></i> About Model</a>
-            <a href="#contact"  onclick="scrollTo('contact');closeMobileMenu()"  class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-envelope w-5"></i> Contact</a>
+            <a href="#home"     onclick="event.preventDefault();smoothScroll('home');closeMobileMenu()"     class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-house w-5"></i> Home</a>
+            <a href="#listings" onclick="event.preventDefault();smoothScroll('listings');closeMobileMenu()" class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-list-ul w-5"></i> Listings</a>
+            <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict');closeMobileMenu()"  class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-chart-line w-5"></i> AI Predictor</a>
+            <a href="#about"    onclick="event.preventDefault();smoothScroll('about');closeMobileMenu()"    class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-brain w-5"></i> About Model</a>
+            <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact');closeMobileMenu()"  class="py-2 px-4 hover:bg-gray-50 rounded-2xl flex items-center gap-x-3"><i class="fa-solid fa-envelope w-5"></i> Contact</a>
         </div>
     </div>
 </nav>
 
 <!-- ════════════════════════════════════════════ HERO -->
-<section id="home" class="hero-bg min-h-screen flex items-center text-white">
+<section id="home" class="hero-bg min-h-screen flex items-center text-white relative">
     <div class="max-w-7xl mx-auto px-6 py-24 w-full">
         <div class="max-w-2xl">
             <div class="inline-flex items-center gap-x-2 bg-white/20 backdrop-blur-md text-white text-sm font-medium px-6 h-10 rounded-3xl mb-6 border border-white/30">
@@ -150,11 +150,11 @@
             </p>
 
             <div class="flex flex-wrap items-center gap-4">
-                <button onclick="scrollTo('predict')"
+                <button onclick="smoothScroll('predict')"
                         class="px-8 py-4 bg-white text-[#0055ff] font-semibold text-lg rounded-3xl flex items-center gap-x-3 hover:scale-105 active:scale-95 transition-transform shadow-2xl">
                     <i class="fa-solid fa-magic"></i> Get Instant Prediction
                 </button>
-                <button onclick="scrollTo('listings')"
+                <button onclick="smoothScroll('listings')"
                         class="px-8 py-4 border border-white/70 hover:bg-white/10 text-white font-medium text-lg rounded-3xl flex items-center gap-x-3 transition-colors">
                     Browse Properties <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -198,7 +198,7 @@
             <span class="px-4 py-1 bg-blue-100 text-[#0055ff] text-sm font-semibold rounded-3xl">FEATURED</span>
             <h2 class="section-header text-4xl font-semibold text-gray-900 mt-3">Premium Homes in Indore &amp; Bangalore</h2>
         </div>
-        <a href="#listings" onclick="scrollTo('listings')" class="flex items-center text-[#0055ff] font-medium hover:gap-x-3 gap-x-2 transition-all cursor-pointer">
+        <a href="#listings" onclick="event.preventDefault();smoothScroll('listings')" class="flex items-center text-[#0055ff] font-medium hover:gap-x-3 gap-x-2 transition-all cursor-pointer">
             View all listings <i class="fa-solid fa-arrow-right ml-1"></i>
         </a>
     </div>
@@ -592,7 +592,8 @@ function hideEl(id) {
     el.classList.remove('show-flex')
 }
 
-function scrollTo(id) {
+function smoothScroll(id) {
+    event && event.preventDefault && event.preventDefault()
     const el = document.getElementById(id)
     if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
