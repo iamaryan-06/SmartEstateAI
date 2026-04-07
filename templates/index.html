@@ -14,14 +14,15 @@
             extend: {
                 colors: {
                     brand: { 50:'#e6f0ff', 100:'#b3d1ff', 200:'#80b3ff', 400:'#3388ff', 500:'#0055ff', 600:'#0044cc', 700:'#003399', 800:'#002266', 900:'#001133' },
-                    surface: { 50:'#f8fafc', 100:'#f1f5f9', 800:'#1e293b', 850:'#172033', 900:'#0f172a', 950:'#0a1021' }
+                    surface: { 50:'#f8fafc', 100:'#f1f5f9', 800:'#1e293b', 850:'#172033', 900:'#0f172a', 950:'#0a1021' },
+                    neon: { blue:'#00d4ff', purple:'#a855f7', pink:'#ec4899', green:'#10b981' }
                 }
             }
         }
     }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
         *{margin:0;padding:0;box-sizing:border-box}
         html{scroll-behavior:smooth}
         body{font-family:'Inter',system-ui,sans-serif;overflow-x:hidden;transition:background .4s,color .4s}
@@ -31,8 +32,9 @@
         #hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
 
         /* Glassmorphism */
-        .glass{background:rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12)}
-        .dark .glass{background:rgba(15,23,42,.5);border-color:rgba(255,255,255,.06)}
+        .glass{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+        .dark .glass{background:rgba(15,23,42,.45);border-color:rgba(255,255,255,.06)}
+        .glass-strong{background:rgba(255,255,255,.12);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.18)}
 
         /* Nav */
         .nav-link{position:relative;transition:color .25s}
@@ -46,6 +48,7 @@
 
         /* Gradient text */
         .gradient-text{background:linear-gradient(135deg,#0055ff 0%,#00d4ff 50%,#a855f7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .gradient-text-warm{background:linear-gradient(135deg,#f59e0b 0%,#ef4444 50%,#ec4899 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
         /* Animations */
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -61,6 +64,31 @@
         .pulse-ring{animation:pulse-ring 2s ease-out infinite}
         @keyframes gradient-x{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
         .animate-gradient{background-size:200% 200%;animation:gradient-x 4s ease infinite}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .shimmer{background:linear-gradient(90deg,transparent 25%,rgba(255,255,255,.08) 50%,transparent 75%);background-size:200% 100%;animation:shimmer 2s ease-in-out infinite}
+        @keyframes glow-pulse{0%,100%{box-shadow:0 0 20px rgba(0,85,255,.15),0 0 40px rgba(0,212,255,.08)}50%{box-shadow:0 0 30px rgba(0,85,255,.25),0 0 60px rgba(0,212,255,.15)}}
+        .glow-pulse{animation:glow-pulse 3s ease-in-out infinite}
+        @keyframes slideInLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes slideInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+        .slide-in-left{animation:slideInLeft .6s ease forwards}
+        .slide-in-right{animation:slideInRight .6s ease forwards}
+        @keyframes borderGlow{0%,100%{border-color:rgba(0,85,255,.3)}50%{border-color:rgba(0,212,255,.6)}}
+        .border-glow{animation:borderGlow 3s ease-in-out infinite}
+        @keyframes typewriter{from{width:0}to{width:100%}}
+        @keyframes blink{50%{border-color:transparent}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+        .scale-in{animation:scaleIn .4s cubic-bezier(.4,0,.2,1) forwards}
+        @keyframes rangeSlide{from{width:0}to{width:100%}}
+        .range-slide{animation:rangeSlide .8s ease forwards}
+
+        /* Loading skeleton */
+        @keyframes skeleton{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+        .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.08) 37%,rgba(255,255,255,.03) 63%);background-size:200px 100%;animation:skeleton 1.4s ease infinite;border-radius:12px}
+
+        /* Button ripple */
+        .btn-ripple{position:relative;overflow:hidden}
+        .btn-ripple::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(255,255,255,.2) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+        .btn-ripple:hover::after{opacity:1}
 
         /* Visibility */
         .show-flex{display:flex!important}
@@ -94,6 +122,15 @@
         @media(min-width:641px) and (max-width:1024px){
             .hero-title{font-size:3.5rem!important}
         }
+
+        /* Price range bar */
+        .range-track{position:relative;height:8px;border-radius:99px;overflow:hidden}
+        .range-fill{position:absolute;inset:0;border-radius:99px}
+        .range-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;border:3px solid white;z-index:2}
+
+        /* AI Description card */
+        .desc-card{position:relative;overflow:hidden}
+        .desc-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(0,85,255,.05),transparent,rgba(0,212,255,.05),transparent);animation:spin 8s linear infinite}
     </style>
 </head>
 <body class="bg-white text-gray-900 dark:bg-surface-950 dark:text-gray-100">
@@ -105,14 +142,50 @@
 <nav id="navbar" class="bg-white/80 dark:bg-surface-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5 sticky top-0 z-50 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-16">
-            <div class="flex items-center gap-x-2">
-                <div class="w-9 h-9 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
-                    <i class="fa-solid fa-house-signal text-sm"></i>
+            <div class="flex items-center gap-x-3">
+                <!-- Futuristic SVG Logo (Requirement 4) -->
+                <div class="w-10 h-10 flex items-center justify-center">
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-9 h-9 drop-shadow-lg">
+                        <defs>
+                            <linearGradient id="logo-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#0055ff"/>
+                                <stop offset="50%" stop-color="#00d4ff"/>
+                                <stop offset="100%" stop-color="#a855f7"/>
+                            </linearGradient>
+                            <linearGradient id="logo-grad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#00d4ff"/>
+                                <stop offset="100%" stop-color="#0055ff"/>
+                            </linearGradient>
+                            <filter id="logo-glow">
+                                <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Outer hexagonal frame -->
+                        <path d="M24 2L43 13v22L24 46 5 35V13L24 2z" stroke="url(#logo-grad1)" stroke-width="1.5" fill="none" opacity="0.4"/>
+                        <!-- Inner building silhouette -->
+                        <path d="M16 36V22l8-8 8 8v14" stroke="url(#logo-grad1)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#logo-glow)"/>
+                        <!-- Roof peak with signal waves -->
+                        <path d="M13 24l11-12 11 12" stroke="url(#logo-grad2)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- AI signal arcs -->
+                        <path d="M20 16a6 6 0 0 1 8 0" stroke="#00d4ff" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                        <path d="M18 13a10 10 0 0 1 12 0" stroke="#a855f7" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+                        <!-- Window dots -->
+                        <rect x="20" y="26" width="3.5" height="3.5" rx="0.8" fill="url(#logo-grad1)" opacity="0.8"/>
+                        <rect x="25" y="26" width="3.5" height="3.5" rx="0.8" fill="url(#logo-grad1)" opacity="0.6"/>
+                        <rect x="20" y="31" width="3.5" height="3.5" rx="0.8" fill="url(#logo-grad1)" opacity="0.6"/>
+                        <rect x="25" y="31" width="3.5" height="3.5" rx="0.8" fill="url(#logo-grad1)" opacity="0.8"/>
+                        <!-- Data pulse dot -->
+                        <circle cx="24" cy="10" r="1.5" fill="#00d4ff" opacity="0.9">
+                            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2s" repeatCount="indefinite"/>
+                            <animate attributeName="r" values="1.5;2;1.5" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                    </svg>
                 </div>
                 <h1 class="logo-font text-xl sm:text-2xl font-semibold tracking-tight">
                     SmartEstate<span class="gradient-text">AI</span>
                 </h1>
-                <span class="hidden sm:inline text-[10px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-500 px-2.5 py-0.5 rounded-full border border-brand-100 dark:border-brand-500/20">v3.0</span>
+                <span class="hidden sm:inline text-[10px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-500 px-2.5 py-0.5 rounded-full border border-brand-100 dark:border-brand-500/20">v4.0</span>
             </div>
 
             <div class="hidden lg:flex items-center gap-x-7 text-sm font-medium">
@@ -126,11 +199,11 @@
             <div class="flex items-center gap-x-2 sm:gap-x-3">
                 <!-- Dark mode toggle -->
                 <button onclick="toggleDarkMode()" id="theme-toggle"
-                        class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-white/15 transition-all tooltip" data-tip="Toggle theme">
+                        class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-white/15 transition-all hover:rotate-12 tooltip" data-tip="Toggle theme">
                     <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
                 </button>
                 <button onclick="smoothScroll('predict')"
-                        class="hidden sm:flex px-4 py-2 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-semibold rounded-xl items-center gap-x-2 shadow-lg shadow-brand-500/25 transition-all hover:shadow-brand-500/40 hover:scale-[1.02] active:scale-[.98]">
+                        class="hidden sm:flex px-4 py-2 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-sm font-semibold rounded-xl items-center gap-x-2 shadow-lg shadow-brand-500/25 transition-all hover:shadow-brand-500/40 hover:scale-[1.02] active:scale-[.98] btn-ripple">
                     <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Predict
                 </button>
                 <button onclick="toggleMobileMenu()" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300">
@@ -142,11 +215,11 @@
     <!-- Mobile menu -->
     <div id="mobile-menu" class="hidden lg:hidden bg-white dark:bg-surface-900 border-t border-gray-100 dark:border-white/5 px-4 py-3">
         <div class="flex flex-col gap-y-1 text-sm font-medium">
-            <a href="#home"     onclick="event.preventDefault();smoothScroll('home');closeMobileMenu()"     class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-house w-5 text-brand-500"></i> Home</a>
-            <a href="#listings" onclick="event.preventDefault();smoothScroll('listings');closeMobileMenu()" class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-list-ul w-5 text-brand-500"></i> Listings</a>
-            <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict');closeMobileMenu()"  class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-chart-line w-5 text-brand-500"></i> AI Predictor</a>
-            <a href="#about"    onclick="event.preventDefault();smoothScroll('about');closeMobileMenu()"    class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-brain w-5 text-brand-500"></i> How AI Works</a>
-            <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact');closeMobileMenu()"  class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300"><i class="fa-solid fa-envelope w-5 text-brand-500"></i> Contact</a>
+            <a href="#home"     onclick="event.preventDefault();smoothScroll('home');closeMobileMenu()"     class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300 transition-colors"><i class="fa-solid fa-house w-5 text-brand-500"></i> Home</a>
+            <a href="#listings" onclick="event.preventDefault();smoothScroll('listings');closeMobileMenu()" class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300 transition-colors"><i class="fa-solid fa-list-ul w-5 text-brand-500"></i> Listings</a>
+            <a href="#predict"  onclick="event.preventDefault();smoothScroll('predict');closeMobileMenu()"  class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300 transition-colors"><i class="fa-solid fa-chart-line w-5 text-brand-500"></i> AI Predictor</a>
+            <a href="#about"    onclick="event.preventDefault();smoothScroll('about');closeMobileMenu()"    class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300 transition-colors"><i class="fa-solid fa-brain w-5 text-brand-500"></i> How AI Works</a>
+            <a href="#contact"  onclick="event.preventDefault();smoothScroll('contact');closeMobileMenu()"  class="py-3 px-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-x-3 text-gray-700 dark:text-gray-300 transition-colors"><i class="fa-solid fa-envelope w-5 text-brand-500"></i> Contact</a>
         </div>
     </div>
 </nav>
@@ -154,6 +227,9 @@
 <!-- ═══════════════════════════════════════════ HERO -->
 <section id="home" class="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-surface-950 via-[#0a1a3a] to-surface-950">
     <canvas id="hero-canvas"></canvas>
+    <!-- Ambient glow orbs -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none"></div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 w-full">
         <div class="max-w-2xl">
             <div class="inline-flex items-center gap-x-2 glass text-white text-xs sm:text-sm font-medium px-4 sm:px-6 h-9 rounded-full mb-6">
@@ -164,17 +240,17 @@
                 LIVE AI MODEL &bull; 10,474+ Listings
             </div>
 
-            <h1 class="hero-title text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.05] logo-font tracking-tight text-white mb-6">
+            <h1 class="hero-title text-4xl sm:text-5xl md:text-7xl font-extrabold leading-[1.05] logo-font tracking-tight text-white mb-6">
                 Predict Property<br>Prices with<br><span class="gradient-text">AI Precision</span>
             </h1>
 
             <p class="hero-subtitle text-base sm:text-xl text-white/70 mb-8 sm:mb-10 max-w-md leading-relaxed">
-                Instant AI valuation for homes in Indore & Bangalore. Powered by Gradient Boosting trained on real 2026 market data.
+                Instant AI valuation with confidence ranges for homes in Indore & Bangalore. Powered by optimized Gradient Boosting trained on real 2026 market data.
             </p>
 
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <button onclick="smoothScroll('predict')"
-                        class="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-brand-500 to-cyan-400 text-white font-semibold text-base sm:text-lg rounded-2xl flex items-center justify-center gap-x-3 hover:scale-[1.03] active:scale-[.97] transition-all shadow-2xl shadow-brand-500/30 animate-gradient">
+                        class="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-brand-500 to-cyan-400 text-white font-semibold text-base sm:text-lg rounded-2xl flex items-center justify-center gap-x-3 hover:scale-[1.03] active:scale-[.97] transition-all shadow-2xl shadow-brand-500/30 animate-gradient btn-ripple">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Get Instant Prediction
                 </button>
                 <button onclick="smoothScroll('listings')"
@@ -185,16 +261,16 @@
 
             <!-- Stats row -->
             <div class="mt-10 sm:mt-14 grid grid-cols-3 gap-4 sm:gap-6 max-w-md">
-                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white">
-                    <div class="text-2xl sm:text-3xl font-bold">104</div>
+                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white hover:bg-white/10 transition-all cursor-default group">
+                    <div class="text-2xl sm:text-3xl font-bold group-hover:scale-110 transition-transform">104</div>
                     <div class="text-[10px] sm:text-xs text-white/60 mt-1">Locations</div>
                 </div>
-                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white">
-                    <div class="text-2xl sm:text-3xl font-bold">12</div>
+                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white hover:bg-white/10 transition-all cursor-default group">
+                    <div class="text-2xl sm:text-3xl font-bold group-hover:scale-110 transition-transform">12</div>
                     <div class="text-[10px] sm:text-xs text-white/60 mt-1">AI Features</div>
                 </div>
-                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white">
-                    <div class="text-2xl sm:text-3xl font-bold">0.93</div>
+                <div class="glass rounded-2xl p-3 sm:p-4 text-center text-white hover:bg-white/10 transition-all cursor-default group">
+                    <div class="text-2xl sm:text-3xl font-bold group-hover:scale-110 transition-transform">0.93</div>
                     <div class="text-[10px] sm:text-xs text-white/60 mt-1">R2 Score</div>
                 </div>
             </div>
@@ -237,7 +313,7 @@
             <div>
                 <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">LOCATION</label>
                 <select id="filter-location" onchange="applyFilters()"
-                        class="bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 w-full sm:w-44 text-sm text-gray-700 dark:text-gray-300">
+                        class="bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 w-full sm:w-44 text-sm text-gray-700 dark:text-gray-300 transition-all">
                     <option value="all">All Cities</option>
                     <option value="Indore">Indore</option>
                     <option value="Bangalore">Bangalore</option>
@@ -256,10 +332,10 @@
                 <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">PRICE RANGE</label>
                 <div class="flex items-center gap-x-2">
                     <input id="price-min" type="number" placeholder="Min" value="2000000" oninput="applyFilters()"
-                           class="w-28 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-gray-300">
+                           class="w-28 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-gray-300 transition-all">
                     <span class="text-gray-300 dark:text-gray-600">—</span>
                     <input id="price-max" type="number" placeholder="Max" value="50000000" oninput="applyFilters()"
-                           class="w-28 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-gray-300">
+                           class="w-28 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-gray-300 transition-all">
                 </div>
             </div>
             <button onclick="resetFilters()" class="px-4 py-2.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-x-2 text-xs transition-colors rounded-xl hover:bg-gray-50 dark:hover:bg-white/5">
@@ -278,12 +354,12 @@
         <!-- Form -->
         <div class="lg:col-span-5 bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-6 sm:p-8 fade-up">
             <div class="flex items-center gap-3 mb-1">
-                <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+                <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20 glow-pulse">
                     <i class="fa-solid fa-brain"></i>
                 </div>
                 <h2 class="text-2xl sm:text-3xl font-bold dark:text-white">AI Predictor</h2>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-sm ml-[52px]">Instant valuation using Gradient Boosting</p>
+            <p class="text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 text-sm ml-[52px]">Tuned Gradient Boosting + Confidence Range</p>
 
             <form id="prediction-form" onsubmit="handlePrediction(event)">
                 <div class="space-y-5">
@@ -292,12 +368,12 @@
                         <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">CITY</label>
                         <div class="grid grid-cols-2 gap-3">
                             <button type="button" onclick="selectCity(this,'Indore')"
-                                    class="city-btn py-4 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                                    class="city-btn py-4 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group hover:shadow-lg hover:shadow-brand-500/10">
                                 <i class="fa-solid fa-city text-xl mb-1 text-gray-400 dark:text-gray-500 group-hover:text-brand-500 transition-colors"></i>
                                 <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Indore</span>
                             </button>
                             <button type="button" onclick="selectCity(this,'Bangalore')"
-                                    class="city-btn py-4 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group">
+                                    class="city-btn py-4 border-2 border-gray-200 dark:border-white/10 hover:border-brand-500 rounded-2xl flex flex-col items-center justify-center transition-all group hover:shadow-lg hover:shadow-brand-500/10">
                                 <i class="fa-solid fa-city text-xl mb-1 text-gray-400 dark:text-gray-500 group-hover:text-brand-500 transition-colors"></i>
                                 <span class="font-semibold text-sm text-gray-700 dark:text-gray-300">Bangalore</span>
                             </button>
@@ -309,7 +385,7 @@
                     <div>
                         <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">LOCATION / AREA</label>
                         <select id="location-select" required
-                                class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm text-gray-700 dark:text-gray-300">
+                                class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm text-gray-700 dark:text-gray-300 transition-all">
                             <option value="">— Select city first —</option>
                         </select>
                     </div>
@@ -336,20 +412,20 @@
                     <div>
                         <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">AREA (sq ft)</label>
                         <input id="area" type="number" required min="200" value="1200"
-                               class="w-full px-5 py-4 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+                               class="w-full px-5 py-4 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white transition-all">
                     </div>
 
                     <!-- BHK + Bath -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">BEDROOMS</label>
-                            <select id="bhk" required class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm dark:text-gray-300">
+                            <select id="bhk" required class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm dark:text-gray-300 transition-all">
                                 <option value="1">1 BHK</option><option value="2" selected>2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5 BHK</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 dark:text-gray-500 mb-2 tracking-widest">BATHROOMS</label>
-                            <select id="bathrooms" required class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm dark:text-gray-300">
+                            <select id="bathrooms" required class="w-full px-4 py-3.5 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-2xl text-sm dark:text-gray-300 transition-all">
                                 <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4+</option>
                             </select>
                         </div>
@@ -357,7 +433,7 @@
 
                     <!-- Submit -->
                     <button type="submit" id="predict-btn"
-                            class="w-full h-14 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-lg font-bold rounded-2xl flex items-center justify-center gap-x-3 shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-[1.01] active:scale-[.98] transition-all">
+                            class="w-full h-14 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white text-lg font-bold rounded-2xl flex items-center justify-center gap-x-3 shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-[1.01] active:scale-[.98] transition-all btn-ripple">
                         <span id="btn-text">Predict Price Now</span>
                         <i id="btn-icon" class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -367,17 +443,32 @@
 
         <!-- Result Panel -->
         <div class="lg:col-span-7 min-h-[400px]">
-            <!-- Loading -->
-            <div id="loading-state" class="hide h-full bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-8 flex-col items-center justify-center text-center">
-                <div class="spinner w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full mb-6 mx-auto"></div>
-                <p class="font-bold text-xl text-gray-800 dark:text-white">Calling AI model...</p>
-                <p class="text-sm text-gray-400 mt-2">Flask + scikit-learn processing</p>
+            <!-- Loading skeleton -->
+            <div id="loading-state" class="hide h-full bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-8 flex-col items-center justify-center">
+                <div class="flex items-center justify-center mb-8">
+                    <div class="relative">
+                        <div class="w-16 h-16 border-4 border-brand-500/30 rounded-full"></div>
+                        <div class="absolute inset-0 w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full spinner"></div>
+                        <div class="absolute inset-2 w-12 h-12 border-4 border-cyan-400/30 rounded-full"></div>
+                        <div class="absolute inset-2 w-12 h-12 border-4 border-cyan-400 border-b-transparent rounded-full spinner" style="animation-direction:reverse;animation-duration:.8s"></div>
+                    </div>
+                </div>
+                <p class="font-bold text-xl text-gray-800 dark:text-white text-center">Analyzing with AI Model...</p>
+                <p class="text-sm text-gray-400 mt-2 text-center mb-8">Running scaled pipeline + confidence estimation</p>
+                <!-- Skeleton preview -->
+                <div class="space-y-3">
+                    <div class="skeleton h-8 w-3/4 mx-auto"></div>
+                    <div class="skeleton h-4 w-1/2 mx-auto"></div>
+                    <div class="skeleton h-20 w-full mt-4"></div>
+                    <div class="skeleton h-12 w-full"></div>
+                    <div class="skeleton h-12 w-full"></div>
+                </div>
             </div>
 
             <!-- Success -->
             <div id="result-panel" class="hide bg-white dark:bg-surface-850 rounded-3xl shadow-xl dark:shadow-none border border-gray-100 dark:border-white/5 p-6 sm:p-8 h-full flex flex-col overflow-y-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                    <div>
+                    <div class="slide-in-left">
                         <span class="text-emerald-500 text-xs font-bold flex items-center gap-1">
                             <i class="fa-solid fa-circle-check"></i> PREDICTION READY
                         </span>
@@ -385,6 +476,48 @@
                     </div>
                     <div id="result-price" class="text-right price-tag"></div>
                 </div>
+
+                <!-- Price Range Visualization (Requirement 3) -->
+                <div id="price-range-section" class="bg-gradient-to-r from-brand-500/5 via-cyan-500/5 to-purple-500/5 dark:from-brand-500/10 dark:via-cyan-500/10 dark:to-purple-500/10 rounded-2xl p-4 sm:p-5 mb-4 border border-brand-500/10 dark:border-brand-500/20 border-glow scale-in">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-chart-area text-brand-500 text-sm"></i>
+                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300 tracking-wide">ESTIMATED PRICE RANGE</span>
+                        <span id="range-confidence" class="ml-auto text-[10px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full"></span>
+                    </div>
+                    <div class="flex items-end justify-between mb-2">
+                        <div>
+                            <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium">LOW</div>
+                            <div id="range-low" class="text-lg sm:text-xl font-bold text-brand-600 dark:text-brand-400"></div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium">PREDICTED</div>
+                            <div id="range-mid" class="text-xl sm:text-2xl font-extrabold gradient-text"></div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium">HIGH</div>
+                            <div id="range-high" class="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400"></div>
+                        </div>
+                    </div>
+                    <!-- Range bar -->
+                    <div class="range-track bg-gray-200 dark:bg-white/10 mt-1">
+                        <div class="range-fill bg-gradient-to-r from-brand-500 via-cyan-400 to-purple-500 range-slide" style="opacity:0.8"></div>
+                        <div id="range-marker" class="range-marker bg-white shadow-lg shadow-brand-500/30" style="left:50%"></div>
+                    </div>
+                </div>
+
+                <!-- AI Description (Requirement 5) -->
+                <div id="ai-description-section" class="hide desc-card bg-gray-50 dark:bg-surface-900 rounded-2xl p-4 sm:p-5 mb-4 border border-gray-100 dark:border-white/5">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-6 h-6 bg-gradient-to-br from-brand-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                <i class="fa-solid fa-sparkles text-white text-[10px]"></i>
+                            </div>
+                            <span class="text-xs font-bold text-gray-700 dark:text-gray-300 tracking-wide">AI PROPERTY INSIGHT</span>
+                        </div>
+                        <p id="ai-description-text" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"></p>
+                    </div>
+                </div>
+
                 <div class="bg-gray-50 dark:bg-surface-900 rounded-xl p-4 mb-4">
                     <div class="flex justify-between text-sm mb-3">
                         <span class="text-gray-500 dark:text-gray-400">Your inputs</span>
@@ -406,9 +539,9 @@
                 <div id="similar-properties" class="grid grid-cols-3 gap-3 sm:gap-4"></div>
                 <div class="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-sm">
                     <div class="flex items-center text-emerald-600 dark:text-emerald-400 text-xs">
-                        <i class="fa-solid fa-robot mr-2"></i> Gradient Boosting + 12 Features
+                        <i class="fa-solid fa-robot mr-2"></i> Tuned GBR + StandardScaler + 12 Features
                     </div>
-                    <button onclick="resetPrediction()" class="flex items-center gap-x-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-xs">
+                    <button onclick="resetPrediction()" class="flex items-center gap-x-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-xs hover:scale-105">
                         <i class="fa-solid fa-rotate-left"></i> New Prediction
                     </button>
                 </div>
@@ -420,7 +553,7 @@
                     <i class="fa-solid fa-house-signal text-4xl gradient-text"></i>
                 </div>
                 <h3 class="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500 mb-2">AI valuation awaits</h3>
-                <p class="text-gray-400 dark:text-gray-500 max-w-xs text-sm">Fill the form — our ML model trained on thousands of listings will predict the price instantly.</p>
+                <p class="text-gray-400 dark:text-gray-500 max-w-xs text-sm">Fill the form — our tuned ML pipeline will predict a price range instantly with AI-powered property insights.</p>
             </div>
         </div>
     </div>
@@ -431,10 +564,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="grid md:grid-cols-12 gap-10 sm:gap-16">
             <div class="md:col-span-5 fade-up">
-                <span class="text-brand-500 text-xs font-bold tracking-widest">ML PROJECT — v3</span>
-                <h2 class="text-2xl sm:text-4xl font-bold mt-2 mb-6 sm:mb-8 dark:text-white">Flat vs Independent<br>+ Cost Model</h2>
+                <span class="text-brand-500 text-xs font-bold tracking-widest">ML PROJECT — v4</span>
+                <h2 class="text-2xl sm:text-4xl font-bold mt-2 mb-6 sm:mb-8 dark:text-white">Tuned Pipeline<br>+ Price Ranges</h2>
                 <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Gradient Boosting trained on 6,200+ records with 12 features — including property type, construction costs, professional fees, statutory charges — all calibrated to 2026 market prices.
+                    Hyperparameter-tuned Gradient Boosting with StandardScaler, trained on 6,200+ records with 12 features. Now returns confidence-bounded price ranges and AI-generated property descriptions.
                 </p>
                 <div class="mt-8 sm:mt-10 grid grid-cols-2 gap-6 sm:gap-8">
                     <div>
@@ -449,12 +582,12 @@
                 <div class="mt-8 sm:mt-10">
                     <h4 class="font-bold mb-4 flex items-center gap-2 dark:text-white"><i class="fa-solid fa-cube text-brand-500"></i> Tech Stack</h4>
                     <div class="flex flex-wrap gap-2">
-                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">HTML + Tailwind</span>
-                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">JavaScript</span>
-                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Three.js</span>
-                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Python + Flask</span>
-                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Scikit-learn</span>
-                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium">Gradient Boosting</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-500 transition-all cursor-default">HTML + Tailwind</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-500 transition-all cursor-default">JavaScript</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-500 transition-all cursor-default">Three.js</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-500 transition-all cursor-default">Python + Flask</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-500 transition-all cursor-default">Scikit-learn Pipeline</span>
+                        <span class="px-3 py-1.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs rounded-xl font-medium hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-500 transition-all cursor-default">RandomizedSearchCV</span>
                     </div>
                 </div>
             </div>
@@ -472,22 +605,22 @@
                     <div class="flex gap-4 sm:gap-6 group">
                         <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">02</div>
                         <div>
-                            <div class="font-bold dark:text-white">12-Feature Engineering</div>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Area, BHK, Bath, Location, Property Type + Construction, Architect, Engineer, Approval, Utility, GST, Resale</p>
+                            <div class="font-bold dark:text-white">12-Feature Engineering + Scaling</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">StandardScaler normalizes all features — Area, BHK, Bath, Location, Property Type + Construction, Architect, Engineer, Approval, Utility, GST, Resale</p>
                         </div>
                     </div>
                     <div class="flex gap-4 sm:gap-6 group">
                         <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">03</div>
                         <div>
-                            <div class="font-bold dark:text-white">Gradient Boosting Training</div>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">500-tree GBR with 5-fold CV — R2=0.92 (Bangalore), R2=0.95 (Indore)</p>
+                            <div class="font-bold dark:text-white">Hyperparameter-Tuned GBR</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">RandomizedSearchCV (30 iterations, 5-fold CV) finds optimal n_estimators, max_depth, learning_rate, subsample, and more</p>
                         </div>
                     </div>
                     <div class="flex gap-4 sm:gap-6 group">
                         <div class="text-4xl sm:text-5xl font-light text-gray-200 dark:text-gray-700 shrink-0 group-hover:text-brand-500 transition-colors">04</div>
                         <div>
-                            <div class="font-bold dark:text-white">Cost Breakdown API</div>
-                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Flask <code class="bg-white dark:bg-white/10 px-1.5 py-0.5 rounded text-xs">/predict</code> returns price + full breakdown</p>
+                            <div class="font-bold dark:text-white">Price Range + AI Description API</div>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Flask <code class="bg-white dark:bg-white/10 px-1.5 py-0.5 rounded text-xs">/predict</code> returns price with ±5-8% confidence bounds and auto-generated property description</p>
                         </div>
                     </div>
                 </div>
@@ -531,20 +664,20 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] text-gray-400 font-bold tracking-widest">YOUR NAME</label>
-                            <input type="text" required class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm">
+                            <input type="text" required class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm transition-all">
                         </div>
                         <div>
                             <label class="text-[10px] text-gray-400 font-bold tracking-widest">EMAIL</label>
-                            <input type="email" required class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm">
+                            <input type="email" required class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl text-sm transition-all">
                         </div>
                     </div>
                     <div class="mt-4">
                         <label class="text-[10px] text-gray-400 font-bold tracking-widest">MESSAGE</label>
                         <textarea rows="4" required placeholder="Tell us about your query..."
-                                  class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl resize-y text-sm"></textarea>
+                                  class="block w-full mt-2 px-4 py-3 bg-gray-50 dark:bg-surface-900 border border-gray-200 dark:border-white/10 rounded-xl resize-y text-sm transition-all"></textarea>
                     </div>
                     <button type="submit" id="contact-submit-btn"
-                            class="mt-5 w-full flex items-center justify-center gap-x-2 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white h-12 rounded-2xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[.98] shadow-lg shadow-brand-500/25">
+                            class="mt-5 w-full flex items-center justify-center gap-x-2 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white h-12 rounded-2xl text-sm font-bold transition-all hover:scale-[1.01] active:scale-[.98] shadow-lg shadow-brand-500/25 btn-ripple">
                         <span id="contact-btn-text"><i class="fa-solid fa-paper-plane mr-1"></i> Send Message</span>
                     </button>
                 </form>
@@ -557,9 +690,12 @@
 <footer class="bg-gray-900 dark:bg-surface-950 text-gray-400 py-8 sm:py-10 border-t border-white/5">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
         <div class="flex items-center gap-x-2 text-white">
-            <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-house-signal text-xs"></i>
-            </div>
+            <!-- Footer SVG logo (mini) -->
+            <svg viewBox="0 0 48 48" fill="none" class="w-8 h-8">
+                <path d="M24 2L43 13v22L24 46 5 35V13L24 2z" stroke="url(#logo-grad1)" stroke-width="1.5" fill="none" opacity="0.4"/>
+                <path d="M16 36V22l8-8 8 8v14" stroke="url(#logo-grad1)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13 24l11-12 11 12" stroke="url(#logo-grad2)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
             <span class="logo-font text-lg font-semibold">SmartEstateAI</span>
         </div>
         <p class="text-xs sm:text-sm text-center">Built by Aryan Sharma &bull; Archita Jain &bull; Aradhya Gangrade</p>
@@ -619,6 +755,9 @@ function showToast(msg, color='green') {
     t.style.opacity = '1';
     setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.classList.add('hide'), 400); }, 3500);
 }
+function formatPrice(lakhs) {
+    return lakhs >= 100 ? `₹${(lakhs / 100).toFixed(2)} Cr` : `₹${lakhs.toFixed(1)} L`;
+}
 
 /* ── Dark Mode ─────────────────────────── */
 function toggleDarkMode() {
@@ -652,6 +791,17 @@ function initScrollAnimations() {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }});
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+}
+
+/* ── Button ripple effect ──────────── */
+function initRippleEffects() {
+    document.querySelectorAll('.btn-ripple').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            btn.style.setProperty('--x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+            btn.style.setProperty('--y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+        });
+    });
 }
 
 /* ── 3D Hero (Three.js Particles) ───── */
@@ -781,7 +931,7 @@ async function handlePrediction(e) {
     if (!location) { showToast('Please select a location!', 'red'); return; }
 
     hideEl('empty-state'); hideEl('result-panel'); showEl('loading-state', true);
-    document.getElementById('btn-text').textContent = 'Predicting...';
+    document.getElementById('btn-text').textContent = 'Analyzing...';
     document.getElementById('btn-icon').className = 'fa-solid fa-spinner spinner';
     document.getElementById('predict-btn').disabled = true;
 
@@ -794,18 +944,35 @@ async function handlePrediction(e) {
         if (data.error) throw new Error(data.error);
 
         const priceLakhs = data.price_lakhs;
-        const displayStr = priceLakhs >= 100 ? `₹${(priceLakhs / 100).toFixed(2)} Cr` : `₹${priceLakhs.toFixed(1)} L`;
+        const displayStr = formatPrice(priceLakhs);
 
         hideEl('loading-state'); showEl('result-panel');
         document.getElementById('result-city').textContent = `${city} — ${location}`;
-        document.getElementById('result-price').innerHTML = `<div class="text-3xl sm:text-5xl font-bold gradient-text">${displayStr}</div><div class="text-emerald-500 text-xs font-bold mt-1">Estimated Market Value</div>`;
+        document.getElementById('result-price').innerHTML = `<div class="text-3xl sm:text-5xl font-extrabold gradient-text">${displayStr}</div><div class="text-emerald-500 text-xs font-bold mt-1">Estimated Market Value</div>`;
         document.getElementById('input-summary').textContent = `${city} • ${area} sq ft • ${bhk} BHK • ${baths} Bath • ${propType === 'independent' ? 'Independent' : 'Flat'}`;
         document.getElementById('result-psqft').textContent = `₹${data.price_psqft?.toLocaleString('en-IN') || '—'}/sqft`;
         document.getElementById('result-zone').textContent = data.zone || '';
         document.getElementById('result-cc').textContent = `Construction: ₹${data.construction_cost_psqft?.toLocaleString('en-IN') || '—'}/sqft`;
+
+        // Price Range (Requirement 3)
+        if (data.price_low_lakhs && data.price_high_lakhs) {
+            document.getElementById('range-low').textContent = formatPrice(data.price_low_lakhs);
+            document.getElementById('range-mid').textContent = displayStr;
+            document.getElementById('range-high').textContent = formatPrice(data.price_high_lakhs);
+            document.getElementById('range-confidence').textContent = `±${data.margin_pct}% confidence`;
+        }
+
+        // AI Description (Requirement 5)
+        if (data.description) {
+            document.getElementById('ai-description-text').textContent = data.description;
+            showEl('ai-description-section');
+        } else {
+            hideEl('ai-description-section');
+        }
+
         renderBreakdown(data.breakdown, priceLakhs);
         renderSimilar(city);
-        showToast(`Predicted: ${displayStr}`);
+        showToast(`Predicted: ${displayStr} (${formatPrice(data.price_low_lakhs)} — ${formatPrice(data.price_high_lakhs)})`);
     } catch(err) {
         hideEl('loading-state'); showEl('empty-state');
         showToast('Prediction failed: ' + err.message, 'red');
@@ -828,12 +995,14 @@ function renderBreakdown(breakdown, totalLakhs) {
         utility_cost:    { bg:'bg-orange-100 dark:bg-orange-500/10', text:'text-orange-600 dark:text-orange-400', bar:'bg-orange-500', icon:'fa-solid fa-bolt' },
         gst:             { bg:'bg-rose-100 dark:bg-rose-500/10', text:'text-rose-600 dark:text-rose-400', bar:'bg-rose-500', icon:'fa-solid fa-receipt' },
     };
+    let delay = 0;
     ['land_and_margin','construction','architect_fee','engineer_fee','approval_fee','utility_cost','gst'].forEach(key => {
         const item = breakdown[key]; if (!item) return;
         const pct = totalLakhs > 0 ? ((item.amount_lakhs / totalLakhs) * 100).toFixed(1) : 0;
         const cl = colors[key];
         const amtStr = item.amount_lakhs >= 100 ? `₹${(item.amount_lakhs/100).toFixed(2)} Cr` : `₹${item.amount_lakhs.toFixed(1)} L`;
-        c.innerHTML += `<div class="flex items-center gap-3"><div class="w-7 h-7 ${cl.bg} rounded-lg flex items-center justify-center flex-shrink-0"><i class="${cl.icon} ${cl.text} text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-xs text-gray-600 dark:text-gray-400 truncate">${item.label}</span><span class="text-xs font-bold ${cl.text} ml-2 whitespace-nowrap">${amtStr} (${pct}%)</span></div><div class="h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full ${cl.bar} rounded-full transition-all duration-700" style="width:${Math.min(pct,100)}%"></div></div></div></div>`;
+        c.innerHTML += `<div class="flex items-center gap-3" style="animation:fadeUp .4s ease ${delay}ms both"><div class="w-7 h-7 ${cl.bg} rounded-lg flex items-center justify-center flex-shrink-0"><i class="${cl.icon} ${cl.text} text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-xs text-gray-600 dark:text-gray-400 truncate">${item.label}</span><span class="text-xs font-bold ${cl.text} ml-2 whitespace-nowrap">${amtStr} (${pct}%)</span></div><div class="h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden"><div class="h-full ${cl.bar} rounded-full transition-all duration-700" style="width:${Math.min(pct,100)}%"></div></div></div></div>`;
+        delay += 60;
     });
 }
 
@@ -847,6 +1016,7 @@ function renderSimilar(city) {
 
 function resetPrediction() {
     hideEl('result-panel'); hideEl('loading-state'); showEl('empty-state');
+    hideEl('ai-description-section');
     document.getElementById('prediction-form').reset();
     document.getElementById('selected-city').value = '';
     document.getElementById('location-select').innerHTML = '<option value="">— Select city first —</option>';
@@ -860,7 +1030,7 @@ function resetPrediction() {
 function renderCard(p, featured=false) {
     const crStr = p.price >= 10000000 ? `₹${(p.price/10000000).toFixed(1)} Cr` : `₹${(p.price/100000).toFixed(0)} L`;
     const h = featured ? 'h-44 sm:h-52' : 'h-40 sm:h-48';
-    return `<div onclick="viewPropertyDetail(${p.id})" class="card-hover bg-white dark:bg-surface-850 rounded-2xl overflow-hidden cursor-pointer border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none"><div class="relative"><img src="${p.image}" alt="${p.title}" class="w-full ${h} object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'"><div class="absolute top-3 left-3 px-2.5 py-1 bg-white/90 dark:bg-surface-900/90 backdrop-blur rounded-lg text-[10px] font-bold shadow">${p.location}</div><div class="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-cyan-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow">${crStr}</div></div><div class="p-4"><div class="font-bold text-sm leading-tight dark:text-white">${p.title}</div><div class="flex justify-between mt-3 text-[10px] text-gray-500 dark:text-gray-400"><div><i class="fa-solid fa-bed mr-1"></i>${p.bhk} BHK</div><div><i class="fa-solid fa-ruler-combined mr-1"></i>${p.area} sqft</div><div><i class="fa-solid fa-bath mr-1"></i>${p.bathrooms}</div></div></div></div>`;
+    return `<div onclick="viewPropertyDetail(${p.id})" class="card-hover bg-white dark:bg-surface-850 rounded-2xl overflow-hidden cursor-pointer border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none group"><div class="relative overflow-hidden"><img src="${p.image}" alt="${p.title}" class="w-full ${h} object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'"><div class="absolute top-3 left-3 px-2.5 py-1 bg-white/90 dark:bg-surface-900/90 backdrop-blur rounded-lg text-[10px] font-bold shadow">${p.location}</div><div class="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-cyan-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow">${crStr}</div></div><div class="p-4"><div class="font-bold text-sm leading-tight dark:text-white">${p.title}</div><div class="flex justify-between mt-3 text-[10px] text-gray-500 dark:text-gray-400"><div><i class="fa-solid fa-bed mr-1"></i>${p.bhk} BHK</div><div><i class="fa-solid fa-ruler-combined mr-1"></i>${p.area} sqft</div><div><i class="fa-solid fa-bath mr-1"></i>${p.bathrooms}</div></div></div></div>`;
 }
 function renderFeatured() { document.getElementById('featured-grid').innerHTML = propertiesDB.slice(0,4).map(p => renderCard(p,true)).join(''); }
 function renderListings(list) {
@@ -933,6 +1103,7 @@ window.onload = () => {
     renderListings(propertiesDB);
     init3DHero();
     initScrollAnimations();
+    initRippleEffects();
     window.addEventListener('scroll', updateScrollUI, { passive: true });
 };
 </script>
