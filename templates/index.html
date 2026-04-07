@@ -6,6 +6,7 @@
     <title>SmartEstate AI | Predict Property Prices in Indore & Bangalore</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
     tailwind.config = {
@@ -131,6 +132,54 @@
         /* AI Description card */
         .desc-card{position:relative;overflow:hidden}
         .desc-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(0,85,255,.05),transparent,rgba(0,212,255,.05),transparent);animation:spin 8s linear infinite}
+
+        /* ── 3D Tilt Card glow ── */
+        .tilt-card{transform-style:preserve-3d;transition:box-shadow .35s ease}
+        .tilt-card:hover{box-shadow:0 20px 60px -15px rgba(0,85,255,.25),0 0 30px rgba(0,212,255,.08)}
+        .dark .tilt-card:hover{box-shadow:0 20px 60px -15px rgba(0,85,255,.35),0 0 40px rgba(0,212,255,.12)}
+        .tilt-card .tilt-inner{transform:translateZ(30px)}
+
+        /* ── Parallax layers ── */
+        .parallax-slow{transition:transform .1s linear}
+        .parallax-fast{transition:transform .1s linear}
+
+        /* ── Glowing border hover ── */
+        .glow-hover{position:relative;overflow:hidden}
+        .glow-hover::before{content:'';position:absolute;inset:-2px;background:conic-gradient(from var(--glow-angle,0deg),#0055ff,#00d4ff,#a855f7,#ec4899,#0055ff);border-radius:inherit;z-index:-1;opacity:0;transition:opacity .4s ease}
+        .glow-hover:hover::before{opacity:1;animation:spin 3s linear infinite}
+        .glow-hover::after{content:'';position:absolute;inset:2px;background:inherit;border-radius:inherit;z-index:-1}
+
+        /* ── Modal staggered entrance ── */
+        @keyframes modalBackdropIn{from{opacity:0}to{opacity:1}}
+        @keyframes modalSlideUp{from{opacity:0;transform:translateY(60px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes modalImageReveal{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+        @keyframes modalContentFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .modal-backdrop-anim{animation:modalBackdropIn .3s ease forwards}
+        .modal-card-anim{animation:modalSlideUp .5s cubic-bezier(.22,1,.36,1) forwards}
+        .modal-img-anim{animation:modalImageReveal .6s cubic-bezier(.25,.46,.45,.94) .15s both}
+        .modal-content-stagger>*{opacity:0;animation:modalContentFade .4s ease forwards}
+        .modal-content-stagger>*:nth-child(1){animation-delay:.25s}
+        .modal-content-stagger>*:nth-child(2){animation-delay:.35s}
+        .modal-content-stagger>*:nth-child(3){animation-delay:.45s}
+        .modal-content-stagger>*:nth-child(4){animation-delay:.55s}
+        .modal-content-stagger>*:nth-child(5){animation-delay:.65s}
+        .modal-content-stagger>*:nth-child(6){animation-delay:.75s}
+        @keyframes modalExit{to{opacity:0;transform:translateY(40px) scale(.95)}}
+
+        /* ── Accuracy Ring ── */
+        .accuracy-ring{position:relative;width:90px;height:90px}
+        .accuracy-ring svg{transform:rotate(-90deg)}
+        .accuracy-ring .ring-bg{fill:none;stroke:rgba(0,85,255,.1);stroke-width:6}
+        .accuracy-ring .ring-fill{fill:none;stroke:url(#accuracy-grad);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+        .dark .accuracy-ring .ring-bg{stroke:rgba(0,212,255,.08)}
+
+        /* ── Confidence statement pulse ── */
+        @keyframes confidencePulse{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+        .confidence-badge{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(0,85,255,.1),rgba(168,85,247,.1));background-size:200% 200%;animation:confidencePulse 4s ease infinite}
+        .dark .confidence-badge{background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(0,85,255,.15),rgba(168,85,247,.15));background-size:200% 200%}
+
+        /* ── Magnetic button effect ── */
+        .magnetic-btn{transition:transform .2s cubic-bezier(.25,.46,.45,.94)}
     </style>
 </head>
 <body class="bg-white text-gray-900 dark:bg-surface-950 dark:text-gray-100">
@@ -185,7 +234,7 @@
                 <h1 class="logo-font text-xl sm:text-2xl font-semibold tracking-tight">
                     SmartEstate<span class="gradient-text">AI</span>
                 </h1>
-                <span class="hidden sm:inline text-[10px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-500 px-2.5 py-0.5 rounded-full border border-brand-100 dark:border-brand-500/20">v4.0</span>
+                <span class="hidden sm:inline text-[10px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-500 px-2.5 py-0.5 rounded-full border border-brand-100 dark:border-brand-500/20">v5.0</span>
             </div>
 
             <div class="hidden lg:flex items-center gap-x-7 text-sm font-medium">
@@ -228,8 +277,8 @@
 <section id="home" class="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-surface-950 via-[#0a1a3a] to-surface-950">
     <canvas id="hero-canvas"></canvas>
     <!-- Ambient glow orbs -->
-    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] pointer-events-none parallax-slow"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none parallax-fast"></div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 w-full">
         <div class="max-w-2xl">
             <div class="inline-flex items-center gap-x-2 glass text-white text-xs sm:text-sm font-medium px-4 sm:px-6 h-9 rounded-full mb-6">
@@ -250,7 +299,7 @@
 
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <button onclick="smoothScroll('predict')"
-                        class="px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-brand-500 to-cyan-400 text-white font-semibold text-base sm:text-lg rounded-2xl flex items-center justify-center gap-x-3 hover:scale-[1.03] active:scale-[.97] transition-all shadow-2xl shadow-brand-500/30 animate-gradient btn-ripple">
+                        class="magnetic-btn px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-brand-500 to-cyan-400 text-white font-semibold text-base sm:text-lg rounded-2xl flex items-center justify-center gap-x-3 hover:scale-[1.03] active:scale-[.97] transition-all shadow-2xl shadow-brand-500/30 animate-gradient btn-ripple">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Get Instant Prediction
                 </button>
                 <button onclick="smoothScroll('listings')"
@@ -518,6 +567,44 @@
                     </div>
                 </div>
 
+                <!-- Accuracy + Confidence Section -->
+                <div id="accuracy-confidence-section" class="hide grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 scale-in">
+                    <!-- Accuracy Ring -->
+                    <div class="bg-gray-50 dark:bg-surface-900 rounded-2xl p-4 border border-gray-100 dark:border-white/5 flex items-center gap-4">
+                        <div class="accuracy-ring flex-shrink-0">
+                            <svg viewBox="0 0 36 36" width="90" height="90">
+                                <defs>
+                                    <linearGradient id="accuracy-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#0055ff"/>
+                                        <stop offset="50%" stop-color="#00d4ff"/>
+                                        <stop offset="100%" stop-color="#10b981"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+                                <circle id="accuracy-ring-fill" class="ring-fill" cx="18" cy="18" r="15.5"
+                                        stroke-dasharray="97.39" stroke-dashoffset="97.39"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span id="accuracy-value" class="text-lg font-extrabold gradient-text">—</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold text-gray-400 dark:text-gray-500 tracking-widest mb-1">LOCAL MARKET ACCURACY</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Based on zone data density and historical price variance in this micro-market</div>
+                        </div>
+                    </div>
+                    <!-- Confidence Statement -->
+                    <div class="confidence-badge rounded-2xl p-4 border border-emerald-200/30 dark:border-emerald-500/10 flex flex-col justify-center">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                                <i class="fa-solid fa-shield-halved text-white text-[10px]"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-gray-700 dark:text-gray-300 tracking-widest">ACQUISITION CONFIDENCE</span>
+                        </div>
+                        <p id="confidence-statement" class="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-relaxed"></p>
+                    </div>
+                </div>
+
                 <div class="bg-gray-50 dark:bg-surface-900 rounded-xl p-4 mb-4">
                     <div class="flex justify-between text-sm mb-3">
                         <span class="text-gray-500 dark:text-gray-400">Your inputs</span>
@@ -719,14 +806,22 @@
 <script>
 /* ── Property Data ─────────────────────── */
 const propertiesDB = [
-    { id:1, location:"Bangalore", title:"3BHK Villa in Whitefield",    bhk:3, area:2100, bathrooms:3, price:21000000, image:"/static/images/house1.png",  type:"Villa" },
-    { id:2, location:"Indore",    title:"2BHK Flat in Vijay Nagar",    bhk:2, area:1050, bathrooms:2, price:5500000,  image:"/static/images/house2.jpeg", type:"Flat" },
-    { id:3, location:"Bangalore", title:"3BHK Apt in Koramangala",     bhk:3, area:1800, bathrooms:3, price:30600000, image:"/static/images/house3.jpeg", type:"Apartment" },
-    { id:4, location:"Indore",    title:"3BHK in AB Road",             bhk:3, area:1650, bathrooms:2, price:8000000,  image:"/static/images/house4.jpeg", type:"House" },
-    { id:5, location:"Bangalore", title:"2BHK Premium in Indiranagar", bhk:2, area:1350, bathrooms:2, price:24300000, image:"/static/images/house5.jpeg", type:"Premium" },
-    { id:6, location:"Bangalore", title:"4BHK Condo in Koramangala",   bhk:4, area:3800, bathrooms:4, price:68400000, image:"/static/images/house6.jpeg", type:"Luxury" },
-    { id:7, location:"Indore",    title:"3BHK in Old Palasia",         bhk:3, area:2200, bathrooms:3, price:14300000, image:"/static/images/house7.jpeg", type:"Premium" },
-    { id:8, location:"Bangalore", title:"4BHK Bungalow in Indiranagar",bhk:4, area:3200, bathrooms:4, price:57600000, image:"/static/images/house8.jpeg", type:"Bungalow" },
+    { id:1, location:"Bangalore", title:"3BHK Villa in Whitefield",    bhk:3, area:2100, bathrooms:3, price:21000000, image:"/static/images/house1.png",  type:"Villa",
+      description:"A stunning 3BHK villa nestled in Whitefield's IT corridor, featuring a private garden, modular kitchen, and Italian marble flooring. Perfect for tech professionals seeking a serene retreat minutes from major tech parks." },
+    { id:2, location:"Indore",    title:"2BHK Flat in Vijay Nagar",    bhk:2, area:1050, bathrooms:2, price:5500000,  image:"/static/images/house2.jpeg", type:"Flat",
+      description:"A modern 2BHK apartment in the heart of Vijay Nagar, Indore's most vibrant commercial hub. Enjoy rooftop amenities, 24/7 security, and walkable access to top restaurants, malls, and metro connectivity." },
+    { id:3, location:"Bangalore", title:"3BHK Apt in Koramangala",     bhk:3, area:1800, bathrooms:3, price:30600000, image:"/static/images/house3.jpeg", type:"Apartment",
+      description:"A premium 3BHK apartment in Koramangala's 5th Block, the startup capital of India. Features floor-to-ceiling windows, a club house with infinity pool, and unmatched nightlife and dining within walking distance." },
+    { id:4, location:"Indore",    title:"3BHK in AB Road",             bhk:3, area:1650, bathrooms:2, price:8000000,  image:"/static/images/house4.jpeg", type:"House",
+      description:"A well-built 3BHK independent house on AB Road, Indore's prime commercial artery. Spacious rooms with cross-ventilation, a dedicated parking area, and proximity to Bombay Hospital and top schools make this ideal for families." },
+    { id:5, location:"Bangalore", title:"2BHK Premium in Indiranagar", bhk:2, area:1350, bathrooms:2, price:24300000, image:"/static/images/house5.jpeg", type:"Premium",
+      description:"An ultra-premium 2BHK in Indiranagar's 100 Feet Road, Bangalore's most upscale neighbourhood. Smart home automation, designer interiors, and a rooftop lounge define this luxury living experience in the city's cultural epicentre." },
+    { id:6, location:"Bangalore", title:"4BHK Condo in Koramangala",   bhk:4, area:3800, bathrooms:4, price:68400000, image:"/static/images/house6.jpeg", type:"Luxury",
+      description:"An expansive 4BHK luxury condominium in Koramangala with panoramic city views, a private terrace, home theatre room, and access to a resort-style clubhouse. A marquee address for those who demand the absolute finest." },
+    { id:7, location:"Indore",    title:"3BHK in Old Palasia",         bhk:3, area:2200, bathrooms:3, price:14300000, image:"/static/images/house7.jpeg", type:"Premium",
+      description:"A spacious 3BHK premium residence in Old Palasia, one of Indore's most established and well-connected neighbourhoods. Features imported fixtures, a landscaped balcony garden, and is steps away from Rajwada and Sarafa Bazaar." },
+    { id:8, location:"Bangalore", title:"4BHK Bungalow in Indiranagar",bhk:4, area:3200, bathrooms:4, price:57600000, image:"/static/images/house8.jpeg", type:"Bungalow",
+      description:"A magnificent 4BHK bungalow in Indiranagar featuring a private swimming pool, landscaped garden with mature trees, a double-height living room, and a rooftop entertainment deck. The pinnacle of Bangalore luxury living." },
 ];
 let activeBHKs = [];
 
@@ -970,6 +1065,24 @@ async function handlePrediction(e) {
             hideEl('ai-description-section');
         }
 
+        // Accuracy Ring + Confidence Statement
+        if (data.local_market_accuracy && data.acquisition_probability) {
+            showEl('accuracy-confidence-section');
+            const acc = data.local_market_accuracy;
+            document.getElementById('accuracy-value').textContent = acc + '%';
+            // Animate ring: circumference = 2*pi*15.5 ≈ 97.39
+            const circumference = 97.39;
+            const offset = circumference - (circumference * acc / 100);
+            const ring = document.getElementById('accuracy-ring-fill');
+            ring.style.strokeDashoffset = circumference;
+            setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+            // Confidence statement
+            document.getElementById('confidence-statement').innerHTML =
+                `There is an <span class="text-emerald-500 font-extrabold">${data.acquisition_probability}%</span> probability you can secure this property within this estimated price range.`;
+        } else {
+            hideEl('accuracy-confidence-section');
+        }
+
         renderBreakdown(data.breakdown, priceLakhs);
         renderSimilar(city);
         showToast(`Predicted: ${displayStr} (${formatPrice(data.price_low_lakhs)} — ${formatPrice(data.price_high_lakhs)})`);
@@ -1016,7 +1129,7 @@ function renderSimilar(city) {
 
 function resetPrediction() {
     hideEl('result-panel'); hideEl('loading-state'); showEl('empty-state');
-    hideEl('ai-description-section');
+    hideEl('ai-description-section'); hideEl('accuracy-confidence-section');
     document.getElementById('prediction-form').reset();
     document.getElementById('selected-city').value = '';
     document.getElementById('location-select').innerHTML = '<option value="">— Select city first —</option>';
@@ -1030,13 +1143,14 @@ function resetPrediction() {
 function renderCard(p, featured=false) {
     const crStr = p.price >= 10000000 ? `₹${(p.price/10000000).toFixed(1)} Cr` : `₹${(p.price/100000).toFixed(0)} L`;
     const h = featured ? 'h-44 sm:h-52' : 'h-40 sm:h-48';
-    return `<div onclick="viewPropertyDetail(${p.id})" class="card-hover bg-white dark:bg-surface-850 rounded-2xl overflow-hidden cursor-pointer border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none group"><div class="relative overflow-hidden"><img src="${p.image}" alt="${p.title}" class="w-full ${h} object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'"><div class="absolute top-3 left-3 px-2.5 py-1 bg-white/90 dark:bg-surface-900/90 backdrop-blur rounded-lg text-[10px] font-bold shadow">${p.location}</div><div class="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-cyan-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow">${crStr}</div></div><div class="p-4"><div class="font-bold text-sm leading-tight dark:text-white">${p.title}</div><div class="flex justify-between mt-3 text-[10px] text-gray-500 dark:text-gray-400"><div><i class="fa-solid fa-bed mr-1"></i>${p.bhk} BHK</div><div><i class="fa-solid fa-ruler-combined mr-1"></i>${p.area} sqft</div><div><i class="fa-solid fa-bath mr-1"></i>${p.bathrooms}</div></div></div></div>`;
+    return `<div onclick="viewPropertyDetail(${p.id})" class="tilt-card card-hover bg-white dark:bg-surface-850 rounded-2xl overflow-hidden cursor-pointer border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none group" data-tilt data-tilt-max="8" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.12" data-tilt-scale="1.02"><div class="relative overflow-hidden"><img src="${p.image}" alt="${p.title}" class="w-full ${h} object-cover group-hover:scale-110 transition-transform duration-700" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=60'"><div class="absolute top-3 left-3 px-2.5 py-1 bg-white/90 dark:bg-surface-900/90 backdrop-blur rounded-lg text-[10px] font-bold shadow">${p.location}</div><div class="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-cyan-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow">${crStr}</div></div><div class="p-4 tilt-inner"><div class="font-bold text-sm leading-tight dark:text-white">${p.title}</div><div class="flex justify-between mt-3 text-[10px] text-gray-500 dark:text-gray-400"><div><i class="fa-solid fa-bed mr-1"></i>${p.bhk} BHK</div><div><i class="fa-solid fa-ruler-combined mr-1"></i>${p.area} sqft</div><div><i class="fa-solid fa-bath mr-1"></i>${p.bathrooms}</div></div></div></div>`;
 }
-function renderFeatured() { document.getElementById('featured-grid').innerHTML = propertiesDB.slice(0,4).map(p => renderCard(p,true)).join(''); }
+function renderFeatured() { document.getElementById('featured-grid').innerHTML = propertiesDB.slice(0,4).map(p => renderCard(p,true)).join(''); setTimeout(initTiltCards, 50); }
 function renderListings(list) {
     const c = document.getElementById('listings-grid');
     if (!list.length) { c.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400 dark:text-gray-500">No properties match. Try broadening your search!</div>'; return; }
     c.innerHTML = list.map(p => renderCard(p)).join('');
+    setTimeout(initTiltCards, 50);
 }
 function applyFilters() {
     const loc = document.getElementById('filter-location').value;
@@ -1062,14 +1176,44 @@ function resetFilters() {
     renderListings(propertiesDB);
 }
 
-/* ── Property Modal ────────────────────── */
+/* ── Property Modal (with description + staggered animations) ── */
 function viewPropertyDetail(id) {
     const p = propertiesDB.find(x => x.id === id);
     if (!p) return;
     const crStr = p.price >= 10000000 ? `₹${(p.price/10000000).toFixed(2)} Cr` : `₹${(p.price/100000).toFixed(0)} L`;
+    const descHtml = p.description ? `<p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mt-3 border-l-2 border-brand-500/30 pl-4">${p.description}</p>` : '';
     const div = document.createElement('div');
-    div.innerHTML = `<div id="modal-backdrop" onclick="if(event.target.id==='modal-backdrop')this.remove()" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4" style="animation:fadeUp .3s ease"><div onclick="event.stopPropagation()" class="bg-white dark:bg-surface-850 max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl"><img src="${p.image}" class="w-full h-48 sm:h-64 object-cover" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=70'"><div class="p-6 sm:p-8"><div class="flex justify-between items-start"><span class="text-3xl sm:text-4xl font-bold gradient-text">${crStr}</span><span class="text-emerald-500 font-bold text-sm">${p.location}</span></div><h2 class="text-lg sm:text-xl font-bold mt-2 dark:text-white">${p.title}</h2><div class="flex gap-x-6 sm:gap-x-8 mt-5"><div><span class="block text-[10px] text-gray-400 mb-1">BHK</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.bhk}</span></div><div><span class="block text-[10px] text-gray-400 mb-1">AREA</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.area} <span class="text-xs">sqft</span></span></div><div><span class="block text-[10px] text-gray-400 mb-1">BATHS</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.bathrooms}</span></div></div><button onclick="this.closest('#modal-backdrop').remove()" class="mt-6 w-full py-3.5 bg-gray-900 dark:bg-white/10 text-white rounded-2xl font-medium hover:bg-gray-700 dark:hover:bg-white/20 transition-colors text-sm">Close</button></div></div></div>`;
+    div.innerHTML = `<div id="modal-backdrop" onclick="closeModal(this)" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 modal-backdrop-anim">
+        <div onclick="event.stopPropagation()" class="bg-white dark:bg-surface-850 max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl modal-card-anim">
+            <div class="relative overflow-hidden">
+                <img src="${p.image}" class="w-full h-48 sm:h-64 object-cover modal-img-anim" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=70'">
+                <div class="absolute top-3 right-3 bg-gradient-to-r from-brand-500 to-cyan-400 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-lg">${p.type}</div>
+            </div>
+            <div class="p-6 sm:p-8 modal-content-stagger">
+                <div class="flex justify-between items-start">
+                    <span class="text-3xl sm:text-4xl font-bold gradient-text">${crStr}</span>
+                    <span class="text-emerald-500 font-bold text-sm flex items-center gap-1"><i class="fa-solid fa-location-dot text-xs"></i> ${p.location}</span>
+                </div>
+                <h2 class="text-lg sm:text-xl font-bold mt-2 dark:text-white">${p.title}</h2>
+                ${descHtml}
+                <div class="flex gap-x-6 sm:gap-x-8 mt-5">
+                    <div><span class="block text-[10px] text-gray-400 mb-1 tracking-widest">BHK</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.bhk}</span></div>
+                    <div><span class="block text-[10px] text-gray-400 mb-1 tracking-widest">AREA</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.area} <span class="text-xs font-normal">sqft</span></span></div>
+                    <div><span class="block text-[10px] text-gray-400 mb-1 tracking-widest">BATHS</span><span class="text-2xl sm:text-3xl font-bold dark:text-white">${p.bathrooms}</span></div>
+                </div>
+                <button onclick="closeModal(document.getElementById('modal-backdrop'))" class="mt-6 w-full py-3.5 bg-gray-900 dark:bg-white/10 text-white rounded-2xl font-medium hover:bg-gray-700 dark:hover:bg-white/20 transition-all text-sm hover:scale-[1.01] active:scale-[.98]">Close</button>
+            </div>
+        </div>
+    </div>`;
     document.body.appendChild(div.firstElementChild);
+}
+function closeModal(el) {
+    if (event.target.id !== 'modal-backdrop' && !event.target.closest('button')) return;
+    const card = el.querySelector('.modal-card-anim');
+    if (card) card.style.animation = 'modalExit .3s ease forwards';
+    el.style.transition = 'opacity .3s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
 }
 
 /* ── Contact ───────────────────────────── */
@@ -1096,6 +1240,43 @@ function toggleMobileMenu() {
 }
 function closeMobileMenu() { document.getElementById('mobile-menu').classList.add('hidden'); document.getElementById('hamburger-icon').className = 'fa-solid fa-bars'; }
 
+/* ── VanillaTilt Init (called after cards render) ── */
+function initTiltCards() {
+    if (typeof VanillaTilt === 'undefined') return;
+    document.querySelectorAll('.tilt-card').forEach(el => {
+        if (el.vanillaTilt) el.vanillaTilt.destroy();
+    });
+    VanillaTilt.init(document.querySelectorAll('.tilt-card'), {
+        max: 8, speed: 400, glare: true, 'max-glare': 0.12, scale: 1.02, perspective: 1000
+    });
+}
+
+/* ── Parallax Scroll Effect ──────────── */
+function initParallax() {
+    const orbs = document.querySelectorAll('.parallax-slow, .parallax-fast');
+    if (!orbs.length) return;
+    window.addEventListener('scroll', () => {
+        const sy = window.scrollY;
+        orbs.forEach(orb => {
+            const speed = orb.classList.contains('parallax-fast') ? 0.15 : 0.06;
+            orb.style.transform = `translateY(${sy * speed}px)`;
+        });
+    }, { passive: true });
+}
+
+/* ── Magnetic Button Effect ──────────── */
+function initMagneticButtons() {
+    document.querySelectorAll('.magnetic-btn').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+        });
+        btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+    });
+}
+
 /* ── Init ──────────────────────────────── */
 window.onload = () => {
     initTheme();
@@ -1104,6 +1285,9 @@ window.onload = () => {
     init3DHero();
     initScrollAnimations();
     initRippleEffects();
+    initTiltCards();
+    initParallax();
+    initMagneticButtons();
     window.addEventListener('scroll', updateScrollUI, { passive: true });
 };
 </script>

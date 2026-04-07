@@ -107,6 +107,60 @@ def compute_price_range(price_lakhs, zone, price_std_pct):
     return price_low, price_high, round(margin_pct, 1)
 
 
+def compute_local_market_accuracy(zone, price_std_pct, property_type):
+    """
+    Calculate a local market accuracy percentage (88-96%) based on:
+    - Zone tier (premium zones have denser data, higher accuracy)
+    - Price standard deviation (lower variance = more predictable = higher accuracy)
+    - Property type (flats have more comparable data than independent houses)
+    """
+    zone_base = {
+        "premium": 94.0,
+        "tier1": 92.0,
+        "tier2": 90.0,
+        "budget": 88.5,
+    }
+    base = zone_base.get(zone, 90.0)
+
+    # Lower price variance → higher accuracy (each 1% below 8% adds 0.3%)
+    variance_bonus = max(0, (8.0 - min(price_std_pct, 12.0))) * 0.3
+
+    # Flats have more market comparables than independent houses
+    type_bonus = 0.5 if property_type == "flat" else 0.0
+
+    accuracy = base + variance_bonus + type_bonus
+    return round(max(88.0, min(96.0, accuracy)), 1)
+
+
+def compute_acquisition_probability(zone, price_std_pct, margin_pct):
+    """
+    Calculate acquisition probability (80-95%): the likelihood a buyer can
+    secure this property within the estimated price range.
+
+    Logic:
+    - Budget/tier2 zones → higher probability (less competition, more stock)
+    - Premium zones → lower probability (bidding wars, limited inventory)
+    - Wider margin → higher probability (more room for negotiation)
+    - Lower price variance → more stable market → higher probability
+    """
+    zone_base = {
+        "premium": 82.0,
+        "tier1": 85.0,
+        "tier2": 89.0,
+        "budget": 92.0,
+    }
+    base = zone_base.get(zone, 86.0)
+
+    # Wider confidence margin = easier to land within range
+    margin_bonus = (margin_pct - 5.0) * 1.0  # 0 to 3
+
+    # Lower price variance = more predictable market
+    stability_bonus = max(0, (8.0 - min(price_std_pct, 12.0))) * 0.5
+
+    prob = base + margin_bonus + stability_bonus
+    return round(max(80.0, min(95.0, prob)), 0)
+
+
 def generate_description(city, location, bhk, area, property_type, zone, price_lakhs):
     """Generate a compelling commercial description based on property attributes."""
     # Determine tier description
@@ -230,6 +284,16 @@ def predict():
             city, location, bhk, area, property_type, zone, price
         )
 
+        # Local Market Accuracy (Requirement 3 — new)
+        local_market_accuracy = compute_local_market_accuracy(
+            zone, cost_features.get("price_std_pct", 6.0), property_type
+        )
+
+        # Acquisition Probability (Requirement 4 — new)
+        acquisition_probability = compute_acquisition_probability(
+            zone, cost_features.get("price_std_pct", 6.0), margin_pct
+        )
+
         return _cors(jsonify({
             "price_lakhs": round(price, 2),
             "price_low_lakhs": price_low,
@@ -244,6 +308,8 @@ def predict():
             "breakdown": breakdown,
             "construction_cost_psqft": round(cost_features["construction_cost_psqft"]),
             "description": description,
+            "local_market_accuracy": local_market_accuracy,
+            "acquisition_probability": int(acquisition_probability),
         }))
     except Exception as e:
         import traceback; traceback.print_exc()
